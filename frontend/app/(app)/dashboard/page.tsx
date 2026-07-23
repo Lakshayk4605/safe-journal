@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { MoodBadge } from '@/components/ui/mood-badge';
 import { inspirationalQuotes } from '@/lib/mock-data';
-import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles } from 'lucide-react';
+import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
@@ -244,9 +244,23 @@ export default function DashboardPage() {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Today & Recent */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Inspirational Quote */}
-          <div className="bg-card border border-border/50 rounded-xl p-6 bg-gradient-to-br from-accent/5 to-accent/10">
-            <p className="text-lg italic font-medium">&quot;{quote}&quot;</p>
+          {/* Daily Wisdom Card (Premium Quote Highlight) */}
+          <div className="relative overflow-hidden bg-card border border-border/80 rounded-2xl p-6 md:p-8 bg-gradient-to-br from-accent/5 via-accent/10 to-transparent shadow-neon-accent card-glow group">
+            {/* Absolute quotes icon in background */}
+            <Quote className="absolute right-6 bottom-4 w-28 h-28 text-accent/5 pointer-events-none transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700" />
+            
+            <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-accent/10 text-accent uppercase tracking-wider">
+                <Sparkles className="w-3 h-3 fill-accent/20 animate-pulse" />
+                Daily Wisdom
+              </span>
+              
+              <blockquote className="text-lg md:text-xl font-serif font-medium text-foreground tracking-wide leading-relaxed text-balance">
+                &ldquo;{quote}&rdquo;
+              </blockquote>
+              
+              <div className="w-12 h-0.5 bg-gradient-to-r from-accent/40 to-transparent rounded-full" />
+            </div>
           </div>
 
           {/* Guided Journaling Prompt Card */}
