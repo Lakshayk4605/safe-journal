@@ -277,11 +277,11 @@ export default function JournalPage() {
   const years = Array.from({ length: 11 }, (_, i) => 2020 + i);
 
   return (
-    <div className="p-8 space-y-8 relative min-h-screen">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 relative min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl md:text-4xl font-bold flex items-center gap-2">
             <CalendarIcon className="w-8 h-8 text-primary" />
             Journal Calendar
           </h1>

@@ -64,15 +64,15 @@ export default function ReportsPage() {
   }));
 
   if (loading) {
-    return <div className="p-8 text-muted-foreground">Loading your reports...</div>;
+    return <div className="p-4 md:p-8 text-muted-foreground">Loading your reports...</div>;
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold">Your Wellness Reports</h1>
+          <h1 className="text-2xl md:text-4xl font-bold">Your Wellness Reports</h1>
           <p className="text-muted-foreground">Track your mood patterns and emotional trends</p>
         </div>
         <Button

@@ -312,7 +312,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-2xl">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-2xl">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-4xl font-bold">Settings</h1>
@@ -435,41 +435,41 @@ export default function SettingsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <button
                       onClick={() => handleThemeChange('light', color)}
                       disabled={savingPrefs || modeRestriction === 'dark'}
-                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2.5 px-1.5 md:p-3 rounded-lg border-2 text-xs md:text-sm transition-all cursor-pointer ${
                         mode === 'light'
                           ? 'border-primary bg-primary/10 text-primary font-semibold'
                           : 'border-border hover:border-primary/50 disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground'
                       }`}
                     >
-                      <Sun className="w-4 h-4" />
+                      <Sun className="w-3.5 h-3.5 flex-shrink-0" />
                       Light
                     </button>
                     <button
                       onClick={() => handleThemeChange('dark', color)}
                       disabled={savingPrefs || modeRestriction === 'light'}
-                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2.5 px-1.5 md:p-3 rounded-lg border-2 text-xs md:text-sm transition-all cursor-pointer ${
                         mode === 'dark'
                           ? 'border-primary bg-primary/10 text-primary font-semibold'
                           : 'border-border hover:border-primary/50 disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground'
                       }`}
                     >
-                      <Moon className="w-4 h-4" />
+                      <Moon className="w-3.5 h-3.5 flex-shrink-0" />
                       Dark
                     </button>
                     <button
                       onClick={() => handleThemeChange('system', color)}
                       disabled={savingPrefs || !!modeRestriction}
-                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-1.5 py-2.5 px-1.5 md:p-3 rounded-lg border-2 text-xs md:text-sm transition-all cursor-pointer ${
                         mode === 'system'
                           ? 'border-primary bg-primary/10 text-primary font-semibold'
                           : 'border-border hover:border-primary/50 disabled:opacity-30 disabled:cursor-not-allowed text-muted-foreground'
                       }`}
                     >
-                      <Laptop className="w-4 h-4" />
+                      <Laptop className="w-3.5 h-3.5 flex-shrink-0" />
                       System
                     </button>
                   </div>

@@ -114,10 +114,10 @@ export default function GratitudePage() {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-6xl mx-auto">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-6xl mx-auto">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-400 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-amber-400 via-orange-400 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
           <Heart className="w-10 h-10 text-amber-500 fill-amber-500/20" />
           Everyday Gratitude Writer
         </h1>

@@ -211,7 +211,7 @@ export default function EntryDetailPage() {
   }
 
   return (
-    <div className="p-8 space-y-8 max-w-4xl">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <button

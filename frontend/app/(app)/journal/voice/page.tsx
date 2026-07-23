@@ -111,13 +111,13 @@ export default function VoiceJournalPage() {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-2xl">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-2xl">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/journal" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <h1 className="text-3xl font-bold">Voice Journal Entry</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Voice Journal Entry</h1>
       </div>
 
       {error && (

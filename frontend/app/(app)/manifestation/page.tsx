@@ -126,10 +126,10 @@ export default function ManifestationPage() {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-6xl mx-auto">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-6xl mx-auto">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-400 via-pink-400 to-amber-500 bg-clip-text text-transparent flex items-center gap-3">
+        <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-400 via-pink-400 to-amber-500 bg-clip-text text-transparent flex items-center gap-3">
           <Sparkles className="w-10 h-10 text-purple-400 fill-purple-400/20" />
           Daily Manifestation Board
         </h1>
