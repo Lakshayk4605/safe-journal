@@ -245,7 +245,7 @@ export default function DashboardPage() {
         {/* Left Column - Today & Recent */}
         <div className="lg:col-span-2 space-y-8">
           {/* Daily Wisdom Card (Premium Quote Highlight) */}
-          <div className="relative overflow-hidden bg-card border border-border/80 rounded-2xl p-6 md:p-8 bg-gradient-to-br from-accent/5 via-accent/10 to-transparent shadow-neon-accent card-glow group">
+          <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 sanctuary-quote-glow group">
             {/* Absolute quotes icon in background */}
             <Quote className="absolute right-6 bottom-4 w-28 h-28 text-accent/5 pointer-events-none transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700" />
             
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                 Daily Wisdom
               </span>
               
-              <blockquote className="text-lg md:text-xl font-serif font-medium text-foreground tracking-wide leading-relaxed text-balance">
+              <blockquote className="text-xl md:text-2xl font-serif font-extrabold italic bg-gradient-to-r from-foreground via-foreground to-accent bg-clip-text text-transparent tracking-wide leading-relaxed text-balance">
                 &ldquo;{quote}&rdquo;
               </blockquote>
               

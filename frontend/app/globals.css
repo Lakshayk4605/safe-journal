@@ -1842,3 +1842,30 @@ textarea,
 .animate-wave {
   animation: wave-flow 4s ease-in-out infinite;
 }
+
+/* Futuristic Neon Quote Highlights */
+.sanctuary-quote-glow {
+  position: relative;
+  border: 1px solid color-mix(in oklch, var(--accent) 30%, transparent) !important;
+  background: color-mix(in oklch, var(--card) 85%, transparent) !important;
+  box-shadow: 0 10px 40px -10px color-mix(in oklch, var(--accent) 15%, transparent),
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.12) !important;
+  z-index: 1;
+}
+.sanctuary-quote-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent), var(--primary), var(--accent));
+  background-size: 200% 200%;
+  animation: gradient-shift 6s linear infinite;
+  z-index: -1;
+  opacity: 0.45;
+  filter: blur(14px);
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+.sanctuary-quote-glow:hover::before {
+  opacity: 0.8;
+  filter: blur(18px);
+}
