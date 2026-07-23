@@ -1785,3 +1785,51 @@ textarea,
   background-size: 200% 200%;
   animation: gradient-shift 6s ease infinite;
 }
+
+/* Premium Card Glow styles */
+.card-glow {
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.8;
+  transition: opacity 0.5s ease;
+}
+.card-glow:hover::after {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  opacity: 1;
+}
+
+/* Slow orbital rotation animation for vectors and stars */
+@keyframes orbital-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-orbit {
+  animation: orbital-rotate 25s linear infinite;
+}
+
+/* Neon glow card dropshadows matching theme secondary/primary color */
+.shadow-neon-primary {
+  box-shadow: 0 10px 30px -10px color-mix(in oklch, var(--primary) 20%, transparent);
+}
+.shadow-neon-primary:hover {
+  box-shadow: 0 20px 40px -10px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+.shadow-neon-accent {
+  box-shadow: 0 10px 30px -10px color-mix(in oklch, var(--accent) 20%, transparent);
+}
+.shadow-neon-accent:hover {
+  box-shadow: 0 20px 40px -10px color-mix(in oklch, var(--accent) 35%, transparent);
+}

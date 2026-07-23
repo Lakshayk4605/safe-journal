@@ -53,6 +53,7 @@ export default function DashboardPage() {
     color: string;
     size: number;
   }>>([]);
+  const [greeting, setGreeting] = useState('Welcome back');
 
   const quote = useMemo(
     () => inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)],
@@ -62,6 +63,11 @@ export default function DashboardPage() {
   useEffect(() => {
     setMounted(true);
     setCurrentPrompt(writingPrompts[Math.floor(Math.random() * writingPrompts.length)]);
+    const hours = new Date().getHours();
+    if (hours < 12) setGreeting('Good morning 🌅');
+    else if (hours < 17) setGreeting('Good afternoon ☀️');
+    else setGreeting('Good evening 🌌');
+
     (async () => {
       try {
         const [entriesResult, moodResult] = await Promise.all([
@@ -157,37 +163,78 @@ export default function DashboardPage() {
   const recentEntries = entries.slice(1, 4);
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-2xl md:text-4xl font-bold">Welcome back, {user.name}!</h1>
-        <p className="text-sm text-muted-foreground">
-          {user.streakDays} day streak • {user.totalEntries} total entries
-        </p>
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-6xl mx-auto">
+      {/* Bento Sanctuary Header */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Sanctuary Hero Card */}
+        <div className="md:col-span-2 bg-gradient-to-br from-card via-card to-secondary/5 border border-border rounded-2xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between shadow-neon-primary card-glow min-h-[190px]">
+          {/* Animated Ambient background circle representing sun/moon */}
+          <div className="absolute right-0 top-0 -mr-6 -mt-6 w-36 h-36 rounded-full bg-accent/15 blur-3xl animate-pulse pointer-events-none" />
+          
+          <div className="space-y-2.5 z-10">
+            <span className="text-[10px] uppercase font-extrabold tracking-widest text-primary/95 bg-primary/10 px-2 py-0.5 rounded-full">Daily Sanctuary</span>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
+              {greeting}, {user.name}!
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+              Welcome to your private wellness space. How has your journey been today? Select a reflection below or record your thoughts.
+            </p>
+          </div>
+          
+          {/* Small decorative orbital icon in corner */}
+          <div className="absolute right-6 bottom-6 w-12 h-12 rounded-full border border-border/40 flex items-center justify-center animate-orbit bg-background/30 backdrop-blur-sm pointer-events-none">
+            <Sparkles className="w-5 h-5 text-accent animate-pulse" />
+          </div>
+        </div>
+
+        {/* Quick Stats Bento Widgets */}
+        <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+          {/* Streak Bento Widget */}
+          <div className="bg-card border border-border rounded-2xl p-4 md:p-5 flex items-center gap-4 hover:scale-[1.02] transition-all duration-300 shadow-neon-accent card-glow">
+            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+              <Zap className="w-6 h-6 fill-accent/10" />
+            </div>
+            <div>
+              <p className="text-xl md:text-2xl font-bold tracking-tight">{user.streakDays} Days</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Current Streak</p>
+            </div>
+          </div>
+
+          {/* Reflections Bento Widget */}
+          <div className="bg-card border border-border rounded-2xl p-4 md:p-5 flex items-center gap-4 hover:scale-[1.02] transition-all duration-300 shadow-neon-primary card-glow">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xl md:text-2xl font-bold tracking-tight">{user.totalEntries}</p>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Total Entries</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
       <div className="grid md:grid-cols-2 gap-4">
         <Link href="/journal/new" className="group">
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-6 cursor-pointer hover:border-primary/40 transition-all">
+          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-6 cursor-pointer hover:border-primary/40 hover:scale-[1.01] hover:shadow-lg transition-all duration-300 relative overflow-hidden bg-gradient-shift">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <h3 className="font-semibold">Write New Entry</h3>
+                <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">Write New Entry</h3>
                 <p className="text-sm text-muted-foreground">Express your thoughts and feelings</p>
               </div>
-              <PenTool className="w-8 h-8 text-primary" />
+              <PenTool className="w-8 h-8 text-primary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
             </div>
           </div>
         </Link>
 
         <Link href="/journal/voice" className="group">
-          <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-xl p-6 cursor-pointer hover:border-secondary/40 transition-all">
+          <div className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent border border-secondary/20 rounded-xl p-6 cursor-pointer hover:border-secondary/40 hover:scale-[1.01] hover:shadow-lg transition-all duration-300 relative overflow-hidden bg-gradient-shift">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <h3 className="font-semibold">Voice Journal</h3>
+                <h3 className="font-semibold text-lg text-foreground group-hover:text-secondary transition-colors">Voice Journal</h3>
                 <p className="text-sm text-muted-foreground">Record your thoughts by voice</p>
               </div>
-              <MessageSquare className="w-8 h-8 text-secondary" />
+              <MessageSquare className="w-8 h-8 text-secondary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
             </div>
           </div>
         </Link>
