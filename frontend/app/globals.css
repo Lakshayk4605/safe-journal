@@ -1833,3 +1833,12 @@ textarea,
 .shadow-neon-accent:hover {
   box-shadow: 0 20px 40px -10px color-mix(in oklch, var(--accent) 35%, transparent);
 }
+
+/* Water Bottle wave motion animation */
+@keyframes wave-flow {
+  0%, 100% { transform: translateX(-5%) translateY(0); }
+  50% { transform: translateX(5%) translateY(-3px); }
+}
+.animate-wave {
+  animation: wave-flow 4s ease-in-out infinite;
+}

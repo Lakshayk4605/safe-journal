@@ -34,6 +34,42 @@ export default function ManifestationPage() {
   const [breathText, setBreathText] = useState('Visualize');
   const [breathSeconds, setBreathSeconds] = useState(60);
 
+  // Water bottle manifestation state
+  const [sipCount, setSipCount] = useState(0);
+  const [isDrinking, setIsDrinking] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSips = localStorage.getItem('manifest_water_sips');
+      const savedDate = localStorage.getItem('manifest_water_date');
+      const todayStr = new Date().toDateString();
+      if (savedSips && savedDate === todayStr) {
+        setSipCount(parseInt(savedSips));
+      } else {
+        setSipCount(0);
+        localStorage.setItem('manifest_water_sips', '0');
+        localStorage.setItem('manifest_water_date', todayStr);
+      }
+    }
+  }, []);
+
+  const handleTakeSip = () => {
+    if (sipCount >= 4) return;
+    setIsDrinking(true);
+    const nextSips = sipCount + 1;
+    setSipCount(nextSips);
+    localStorage.setItem('manifest_water_sips', nextSips.toString());
+    
+    setTimeout(() => {
+      setIsDrinking(false);
+    }, 1000);
+  };
+
+  const handleRefillBottle = () => {
+    setSipCount(0);
+    localStorage.setItem('manifest_water_sips', '0');
+  };
+
   const loadData = async () => {
     setLoading(true);
     setError('');
@@ -398,6 +434,105 @@ export default function ManifestationPage() {
               </div>
 
             </div>
+
+            {/* Manifest Water Bottle Card */}
+            <div className="bg-card/40 border border-border/55 rounded-2xl p-6 backdrop-blur-md flex flex-col items-center justify-between min-h-[460px] relative overflow-hidden card-glow shadow-neon-primary">
+              <div className="text-center space-y-1">
+                <h3 className="font-bold text-lg flex items-center justify-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                  Intention Charged Water
+                </h3>
+                <p className="text-xs text-muted-foreground font-medium">Charge your water with intention and take mindful sips</p>
+              </div>
+
+              {/* Water Bottle Graphic */}
+              <div className={`relative w-28 h-52 my-6 flex items-center justify-center transition-all duration-300 ${
+                isDrinking ? 'scale-95 duration-100 animate-pulse' : 'scale-100'
+              }`}>
+                {/* Bottle Cap */}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-4 bg-purple-500 rounded-t-md border border-purple-400/50 shadow z-20" />
+                {/* Bottle Neck */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-6 border-2 border-b-0 border-white/20 dark:border-white/10 bg-white/5 rounded-t-sm z-10" />
+                
+                {/* Glass Bottle Body */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent border-2 border-white/20 rounded-[28px] shadow-inner shadow-white/10 overflow-hidden flex flex-col justify-end">
+                  
+                  {/* Floating intention bubble inside bottle */}
+                  {todayEntry && sipCount < 4 && (
+                    <div className="absolute inset-x-2 top-8 text-[9px] font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-1.5 rounded-lg text-center leading-tight animate-bounce z-20 pointer-events-none line-clamp-3">
+                      {todayEntry.intention}
+                    </div>
+                  )}
+
+                  {/* Water container */}
+                  <div 
+                    className="w-full bg-gradient-to-t from-purple-500/50 via-pink-400/40 to-cyan-400/35 relative transition-all duration-1000 overflow-hidden"
+                    style={{ height: `${100 - (sipCount * 25)}%` }}
+                  >
+                    {/* Glowing Core inside Water */}
+                    <div className="absolute inset-x-0 bottom-0 top-1/2 bg-cyan-400/10 blur-xl animate-pulse" />
+                    
+                    {/* Bubbles */}
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute rounded-full bg-white/35 animate-bounce"
+                        style={{
+                          width: `${2 + Math.random() * 4}px`,
+                          height: `${2 + Math.random() * 4}px`,
+                          bottom: `${Math.random() * 80}%`,
+                          left: `${15 + Math.random() * 70}%`,
+                          animationDelay: `${i * 0.3}s`,
+                          animationDuration: `${1.5 + Math.random() * 2}s`,
+                        }}
+                      />
+                    ))}
+
+                    {/* Wave outline line */}
+                    <div className="absolute top-0 inset-x-0 h-1 bg-white/35 dark:bg-white/20 rounded-full animate-wave" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Water Actions */}
+              <div className="w-full space-y-3 z-10 text-center">
+                {todayEntry ? (
+                  <>
+                    {sipCount < 4 ? (
+                      <>
+                        <Button 
+                          onClick={handleTakeSip}
+                          disabled={isDrinking}
+                          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 cursor-pointer shadow-md select-none transition-all active:scale-95"
+                        >
+                          Take a Mindful Sip ({100 - (sipCount * 25)}% full)
+                        </Button>
+                        <p className="text-[10px] text-muted-foreground px-2 leading-relaxed">
+                          Sip mindfully while internalizing today&apos;s intention.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Button 
+                          onClick={handleRefillBottle}
+                          className="w-full bg-secondary hover:bg-secondary/90 text-white font-bold py-4 cursor-pointer shadow-md select-none transition-all active:scale-95"
+                        >
+                          Refill Intention Bottle 💧
+                        </Button>
+                        <p className="text-[10px] text-emerald-400 font-bold px-2 leading-relaxed animate-pulse">
+                          Manifestation successfully integrated. Bottle empty.
+                        </p>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="p-3 bg-muted/40 border border-border/40 rounded-xl text-xs text-muted-foreground leading-normal">
+                    Lock in today&apos;s intention above to fill your Manifestation Water Bottle!
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       )}

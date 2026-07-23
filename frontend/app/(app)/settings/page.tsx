@@ -673,13 +673,12 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Danger Zone */}
+      {/* Account Actions */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-destructive">Danger Zone</h2>
-        <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 space-y-3">
+        <div className="bg-card border border-border rounded-xl p-6">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-between p-3 hover:bg-destructive/20 rounded-lg transition-colors text-destructive font-medium"
+            className="w-full flex items-center justify-between p-3 hover:bg-destructive/10 rounded-lg transition-colors text-destructive font-medium cursor-pointer"
           >
             <span className="flex items-center gap-2">
               <LogOut className="w-4 h-4" />
@@ -687,34 +686,6 @@ export default function SettingsPage() {
             </span>
             <ChevronRight className="w-4 h-4" />
           </button>
-          <button
-            onClick={() => setShowDeleteForm(!showDeleteForm)}
-            className="w-full flex items-center justify-between p-3 hover:bg-destructive/20 rounded-lg transition-colors text-destructive font-medium border-t border-destructive/20 pt-3"
-          >
-            <span className="flex items-center gap-2">
-              <Trash2 className="w-4 h-4" />
-              Delete Account
-            </span>
-            <ChevronRight className={`w-4 h-4 transition-transform ${showDeleteForm ? 'rotate-90' : ''}`} />
-          </button>
-
-          {showDeleteForm && (
-            <div className="space-y-3 pt-3">
-              <p className="text-sm text-destructive">
-                This permanently deactivates your account. Enter your password to confirm.
-              </p>
-              <Input
-                type="password"
-                placeholder="Your password"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-              />
-              {deleteMessage && <p className="text-sm text-destructive">{deleteMessage}</p>}
-              <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleting || !deletePassword}>
-                {deleting ? 'Deleting...' : 'Permanently Delete My Account'}
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </div>
