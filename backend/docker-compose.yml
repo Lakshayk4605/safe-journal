@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      target: production
+    ports:
+      - '4000:4000'
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/safe_journal?schema=public
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy && node dist/server.js"
+
+  # Optional background-jobs process (BullMQ). Entirely separate from the API
+  # container — if this fails to start or loses its Redis connection, the API,
+  # Postgres, and Redis services are completely unaffected, since only this
+  # process ever opens a Redis connection (see src/config/redis.ts).
+  worker:
+    build:
+      context: .
+      target: production
+    healthcheck:
+      disable: true
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/safe_journal?schema=public
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: node dist/worker.js
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: safe_journal
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

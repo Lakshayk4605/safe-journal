@@ -1,0 +1,444 @@
+// ============================================================================
+// Safe Journal — Prisma Schema
+// PostgreSQL, fully normalized, with soft delete, audit trail, and indexes.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS
+// ----------------------------------------------------------------------------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Mood {
+  EXCELLENT
+  GREAT
+  GOOD
+  OKAY
+  SAD
+  ANXIOUS
+}
+
+enum EntryType {
+  TEXT
+  VOICE
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum NotificationType {
+  JOURNAL_REMINDER
+  MOOD_CHECKIN
+  STREAK_MILESTONE
+  SYSTEM_ANNOUNCEMENT
+  AI_REFLECTION_READY
+}
+
+enum AuditAction {
+  USER_SIGNUP
+  USER_LOGIN
+  USER_LOGOUT
+  USER_LOGIN_FAILED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  EMAIL_VERIFIED
+  TOKEN_REFRESHED
+  TOKEN_REVOKED
+  PROFILE_UPDATED
+  ACCOUNT_DELETED
+  JOURNAL_ENTRY_CREATED
+  JOURNAL_ENTRY_UPDATED
+  JOURNAL_ENTRY_DELETED
+  ADMIN_ACTION
+}
+
+// ----------------------------------------------------------------------------
+// USER & AUTH
+// ----------------------------------------------------------------------------
+
+model User {
+  id                    String    @id @default(uuid())
+  name                  String
+  email                 String    @unique
+  passwordHash          String
+  avatarUrl             String?
+  role                  Role      @default(USER)
+
+  isEmailVerified       Boolean   @default(false)
+  emailVerificationToken String?  @unique
+  emailVerificationExpiresAt DateTime?
+
+  passwordResetToken     String?  @unique
+  passwordResetExpiresAt DateTime?
+
+  // gamification / streaks (denormalized counters, kept in sync by service layer)
+  streakDays            Int       @default(0)
+  lastEntryDate         DateTime?
+  totalEntries          Int       @default(0)
+
+  isActive              Boolean   @default(true)
+  deletedAt             DateTime?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  preferences           UserPreference?
+  journalEntries        JournalEntry[]
+  moodEntries           MoodEntry[]
+  chatSessions          ChatSession[]
+  refreshTokens         RefreshToken[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  feedback              Feedback[]
+  gratitudeEntries      GratitudeEntry[]
+  manifestationEntries  ManifestationEntry[]
+
+  @@index([email])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model UserPreference {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  theme          String   @default("light") // "light" | "dark"
+  notifications  Boolean  @default(true)
+  privateMode    Boolean  @default(true)
+  timezone       String   @default("UTC")
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash   String    @unique // never store raw token
+  userAgent   String?
+  ipAddress   String?
+
+  revokedAt   DateTime?
+  replacedBy  String?
+
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// ----------------------------------------------------------------------------
+// JOURNAL
+// ----------------------------------------------------------------------------
+
+model JournalEntry {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title         String
+  content       String     @db.Text
+  mood          Mood
+  entryType     EntryType  @default(TEXT)
+
+  audioUrl      String?    // set when entryType = VOICE
+  audioDurationSeconds Int?
+  transcript    String?    @db.Text // populated once voice is transcribed
+
+  isFavorite    Boolean    @default(false)
+  isShared      Boolean    @default(false)
+  shareToken    String?    @unique
+
+  deletedAt     DateTime?  // soft delete
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  tags          JournalEntryTag[]
+  emotions      JournalEntryEmotion[]
+  aiReflection  AiReflection?
+  attachments   Attachment[]
+  moodEntry     MoodEntry?
+
+  @@index([userId, createdAt])
+  @@index([userId, mood])
+  @@index([userId, deletedAt])
+  @@map("journal_entries")
+}
+
+model Tag {
+  id      String @id @default(uuid())
+  name    String @unique
+
+  entries JournalEntryTag[]
+
+  @@map("tags")
+}
+
+model JournalEntryTag {
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  tagId          String
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([journalEntryId, tagId])
+  @@map("journal_entry_tags")
+}
+
+model Emotion {
+  id      String @id @default(uuid())
+  name    String @unique
+
+  entries JournalEntryEmotion[]
+
+  @@map("emotions")
+}
+
+model JournalEntryEmotion {
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  emotionId      String
+  emotion        Emotion      @relation(fields: [emotionId], references: [id], onDelete: Cascade)
+
+  @@id([journalEntryId, emotionId])
+  @@map("journal_entry_emotions")
+}
+
+model AiReflection {
+  id             String       @id @default(uuid())
+  journalEntryId String       @unique
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  content        String       @db.Text
+  model          String       // which AI model generated this
+  promptTokens   Int?
+  completionTokens Int?
+
+  createdAt      DateTime     @default(now())
+
+  @@map("ai_reflections")
+}
+
+model Attachment {
+  id             String       @id @default(uuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  url            String
+  publicId       String?      // storage-provider identifier (e.g. Cloudinary)
+  mimeType       String
+  sizeBytes      Int
+
+  createdAt      DateTime     @default(now())
+
+  @@index([journalEntryId])
+  @@map("attachments")
+}
+
+// ----------------------------------------------------------------------------
+// MOOD TRACKING
+// ----------------------------------------------------------------------------
+
+model MoodEntry {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  journalEntryId String?       @unique
+  journalEntry   JournalEntry? @relation(fields: [journalEntryId], references: [id], onDelete: SetNull)
+
+  mood           Mood
+  score          Float         // normalized 1.0 - 5.0
+  notes          String?
+
+  date           DateTime      @db.Date
+
+  createdAt      DateTime      @default(now())
+
+  @@index([userId, date])
+  @@unique([userId, date], name: "user_date_unique")
+  @@map("mood_entries")
+}
+
+// ----------------------------------------------------------------------------
+// AI CHAT
+// ----------------------------------------------------------------------------
+
+model ChatSession {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title         String        @default("New conversation")
+  archivedAt    DateTime?
+  summary       String?       @db.Text
+  isPinned      Boolean       @default(false)
+  isFavorite    Boolean       @default(false)
+  tags          String[]      
+  moodTimeline  String[]      
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  messages  ChatMessage[]
+
+  @@index([userId, createdAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id            String      @id @default(uuid())
+  chatSessionId String
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  role          ChatRole
+  content       String      @db.Text
+
+  model         String?
+  promptTokens  Int?
+  completionTokens Int?
+
+  createdAt     DateTime    @default(now())
+
+  @@index([chatSessionId, createdAt])
+  @@map("chat_messages")
+}
+
+// ----------------------------------------------------------------------------
+// NOTIFICATIONS / FEEDBACK / ADMIN
+// ----------------------------------------------------------------------------
+
+model Notification {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  title     String
+  body      String
+  readAt    DateTime?
+
+  createdAt DateTime          @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  subject   String
+  message   String   @db.Text
+  rating    Int?     // optional 1-5
+  resolved  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@map("feedback")
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action    AuditAction
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  rolloutPercentage Int @default(100)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("feature_flags")
+}
+
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  body        String   @db.Text
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("announcements")
+}
+
+model GratitudeEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  item1     String
+  item2     String
+  item3     String
+
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date], name: "user_gratitude_date_unique")
+  @@index([userId, createdAt])
+  @@map("gratitude_entries")
+}
+
+model ManifestationEntry {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  intention   String   @db.Text
+  affirmation String   @db.Text
+  visualized  Boolean  @default(false)
+
+  date        DateTime @db.Date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, date], name: "user_manifestation_date_unique")
+  @@index([userId, createdAt])
+  @@map("manifestation_entries")
+}

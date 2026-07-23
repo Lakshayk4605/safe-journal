@@ -1,0 +1,29 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+.next/
+**/.next/
+
+# Environment files
+.env
+.env*.local
+**/.env
+**/.env*.local
+
+# Logs
+*.log
+**/logs/
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+# Keep docker-compose.yml as it describes the environment setup

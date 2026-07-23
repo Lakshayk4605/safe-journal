@@ -1,0 +1,92 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: safe_journal
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      target: production
+    ports:
+      - '4000:4000'
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/safe_journal?schema=public
+      REDIS_URL: redis://redis:6379
+      CLIENT_URL: http://localhost:3000
+      API_BASE_URL: http://localhost:4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: sh -c "npx prisma migrate deploy && node dist/server.js"
+
+  # Optional background-jobs process (BullMQ). Isolated from the API — if it
+  # fails, the API/Postgres/Redis/frontend are unaffected (see backend's
+  # src/config/redis.ts for why only this process ever opens a Redis connection).
+  worker:
+    build:
+      context: ./backend
+      target: production
+    healthcheck:
+      disable: true
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/safe_journal?schema=public
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: node dist/worker.js
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked in at build time — browsers call the API directly at this
+        # address, so it must be reachable from the user's machine, not just
+        # from inside the docker network (hence localhost:4000, not
+        # http://api:4000).
+        NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
