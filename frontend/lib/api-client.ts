@@ -1,7 +1,7 @@
 export const API_BASE_URL =
   typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.host}/api/v1`
-    : 'http://localhost:4000/api/v1';
+    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export class ApiError extends Error {
   status: number;
