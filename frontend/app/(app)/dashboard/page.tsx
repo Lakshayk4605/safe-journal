@@ -63,11 +63,15 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      const timer = setTimeout(() => {
-        setShowStreakModal(true);
-      }, 800);
-      return () => clearTimeout(timer);
+    if (user && typeof window !== 'undefined') {
+      const shown = sessionStorage.getItem('streak_modal_shown');
+      if (!shown) {
+        const timer = setTimeout(() => {
+          setShowStreakModal(true);
+          sessionStorage.setItem('streak_modal_shown', 'true');
+        }, 800);
+        return () => clearTimeout(timer);
+      }
     }
   }, [user]);
 
