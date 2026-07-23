@@ -4,6 +4,7 @@ export interface GratitudeUpsertFields {
   item1: string;
   item2: string;
   item3: string;
+  notes?: string;
 }
 
 export const gratitudeEntryRepository = {
@@ -19,6 +20,7 @@ export const gratitudeEntryRepository = {
         item1: fields.item1,
         item2: fields.item2,
         item3: fields.item3,
+        notes: fields.notes,
       },
       create: {
         userId,
@@ -26,6 +28,7 @@ export const gratitudeEntryRepository = {
         item1: fields.item1,
         item2: fields.item2,
         item3: fields.item3,
+        notes: fields.notes,
       },
     });
   },

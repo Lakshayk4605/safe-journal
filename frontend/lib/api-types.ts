@@ -104,6 +104,7 @@ export interface BackendGratitudeEntry {
   item1: string;
   item2: string;
   item3: string;
+  notes?: string;
   date: string;
   createdAt: string;
   updatedAt: string;

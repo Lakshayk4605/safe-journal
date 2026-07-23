@@ -15,6 +15,7 @@ export default function GratitudePage() {
   const [item1, setItem1] = useState('');
   const [item2, setItem2] = useState('');
   const [item3, setItem3] = useState('');
+  const [notes, setNotes] = useState('');
 
   // History state
   const [history, setHistory] = useState<BackendGratitudeEntry[]>([]);
@@ -44,12 +45,14 @@ export default function GratitudePage() {
         setItem1(todayRes.data.entry.item1);
         setItem2(todayRes.data.entry.item2);
         setItem3(todayRes.data.entry.item3);
+        setNotes(todayRes.data.entry.notes || '');
         setIsEditing(false);
       } else {
         setTodayEntry(null);
         setItem1('');
         setItem2('');
         setItem3('');
+        setNotes('');
         setIsEditing(true);
       }
 
@@ -80,6 +83,7 @@ export default function GratitudePage() {
         item1: item1.trim(),
         item2: item2.trim(),
         item3: item3.trim(),
+        notes: notes.trim() || undefined,
       });
 
       setTodayEntry(data.entry);
@@ -211,6 +215,13 @@ export default function GratitudePage() {
                       </div>
                     ))}
                   </div>
+
+                  {todayEntry.notes && (
+                    <div className="mt-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                      <span className="text-xs font-semibold uppercase text-amber-500 tracking-wider block mb-1">Additional Thoughts</span>
+                      <p className="text-foreground leading-relaxed text-sm font-medium italic">&ldquo;{todayEntry.notes}&rdquo;</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* Write/Edit Form State */
@@ -260,6 +271,20 @@ export default function GratitudePage() {
                         required
                       />
                     </div>
+
+                    {/* Additional Thoughts Box */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">4</span>
+                        Additional Thoughts / Own Notes (Optional)
+                      </label>
+                      <textarea
+                        placeholder="e.g. Any custom reflections, deep realizations, or free thoughts you want to keep inside your jar today..."
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="w-full min-h-24 p-3 rounded-lg border border-border/50 bg-background/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none text-base"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex gap-3">
@@ -279,6 +304,7 @@ export default function GratitudePage() {
                           setItem1(todayEntry.item1);
                           setItem2(todayEntry.item2);
                           setItem3(todayEntry.item3);
+                          setNotes(todayEntry.notes || '');
                           setIsEditing(false);
                         }}
                       >
@@ -330,6 +356,13 @@ export default function GratitudePage() {
                               <p className="text-foreground font-medium leading-relaxed">{entry.item3}</p>
                             </div>
                           </div>
+
+                          {entry.notes && (
+                            <div className="mt-2 pt-2 border-t border-border/30 text-xs text-muted-foreground italic leading-normal">
+                              <span className="font-semibold not-italic block mb-0.5 text-[10px] uppercase text-amber-500/80">Additional Thoughts:</span>
+                              &ldquo;{entry.notes}&rdquo;
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -354,9 +387,7 @@ export default function GratitudePage() {
               </div>
 
               {/* Gratitude Jar Graphic */}
-              <div className={`relative w-44 h-56 my-4 flex items-center justify-center transition-transform duration-300 ${
-                isShaking ? 'animate-shake' : ''
-              }`}>
+              <div className="relative w-44 h-56 my-4 flex items-center justify-center group">
                 {/* Floating sparkles */}
                 {sparkles.map((p) => (
                   <Sparkles
@@ -378,21 +409,32 @@ export default function GratitudePage() {
                   {/* Glowing core */}
                   <div className="absolute w-28 h-28 rounded-full bg-amber-400/15 blur-2xl animate-pulse" />
 
-                  {/* Little particles representing memories */}
-                  <div className="absolute w-2 h-2 rounded-full bg-amber-300 top-20 left-12 animate-bounce opacity-70" style={{ animationDelay: '0.2s', animationDuration: '3s' }} />
-                  <div className="absolute w-3 h-3 rounded-full bg-orange-400 top-32 right-14 animate-bounce opacity-65" style={{ animationDelay: '0.5s', animationDuration: '4s' }} />
-                  <div className="absolute w-2 h-2 rounded-full bg-pink-400 top-24 right-10 animate-bounce opacity-80" style={{ animationDelay: '0.9s', animationDuration: '2.5s' }} />
-                  <div className="absolute w-2.5 h-2.5 rounded-full bg-amber-400 bottom-16 left-16 animate-bounce opacity-75" style={{ animationDelay: '1.2s', animationDuration: '3.5s' }} />
-                  <div className="absolute w-1.5 h-1.5 rounded-full bg-orange-300 bottom-24 left-10 animate-bounce opacity-60" style={{ animationDelay: '0.1s', animationDuration: '4.5s' }} />
+                  {/* Folded gratitude paper slips inside jar (Realistic design) */}
+                  <div className="absolute bottom-4 left-6 w-10 h-5 bg-gradient-to-tr from-amber-200 to-amber-100 border border-amber-300/40 rounded-sm rotate-[12deg] shadow-sm opacity-90" />
+                  <div className="absolute bottom-5 right-7 w-9 h-5 bg-gradient-to-tr from-pink-200 to-pink-100 border border-pink-300/40 rounded-sm -rotate-[18deg] shadow-sm opacity-95" />
+                  <div className="absolute bottom-3 left-14 w-10 h-5 bg-gradient-to-tr from-blue-200 to-blue-100 border border-blue-300/40 rounded-sm rotate-[45deg] shadow-sm opacity-90" />
+                  <div className="absolute bottom-6 left-10 w-9 h-5 bg-gradient-to-tr from-emerald-200 to-emerald-100 border border-emerald-300/40 rounded-sm -rotate-[35deg] shadow-sm opacity-95" />
+                  <div className="absolute bottom-8 right-10 w-10 h-4 bg-gradient-to-tr from-purple-200 to-purple-100 border border-purple-300/40 rounded-sm rotate-[15deg] shadow-sm opacity-90" />
 
                   {/* Reflection lines */}
-                  <div className="absolute top-8 left-4 w-4 h-16 bg-white/5 rounded-full rotate-12" />
+                  <div className="absolute top-4 left-3 bottom-4 w-3 bg-gradient-to-r from-white/30 to-transparent rounded-full opacity-70 pointer-events-none" />
+                  <div className="absolute top-4 right-3 bottom-4 w-1.5 bg-gradient-to-l from-white/15 to-transparent rounded-full opacity-50 pointer-events-none" />
                 </div>
 
-                {/* Jar Lid */}
-                <div className="absolute -top-1 w-24 h-5 bg-gradient-to-r from-amber-600 to-amber-700 border border-amber-500/50 rounded-lg shadow-md z-10" />
-                {/* Jar neck thread */}
-                <div className="absolute top-3 w-16 h-2 bg-white/25 rounded-sm z-0" />
+                {/* Jar Lid - Wooden Cork style */}
+                <div className="absolute -top-3 w-20 h-6 bg-gradient-to-b from-amber-800 to-amber-900 border border-amber-700 rounded-b-md shadow-md z-10 flex items-center justify-center">
+                  {/* Wood rings grain detail */}
+                  <div className="w-16 h-1 border-t border-amber-600/30 opacity-50" />
+                </div>
+                {/* Jar neck thread / string tie */}
+                <div className="absolute top-3 w-16 h-1 bg-amber-700/60 rounded-full z-10 animate-pulse" />
+                {/* Hanging Memory Tag */}
+                <div className="absolute top-8 right-3 w-10 h-7 bg-amber-50 border border-amber-200/80 rounded rotate-[15deg] flex flex-col items-center justify-center shadow-md z-10 pointer-events-none origin-top-left transition-transform duration-300 group-hover:rotate-[20deg]">
+                  {/* Tag hole */}
+                  <div className="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-amber-200/50 border border-amber-300" />
+                  <span className="text-[7px] font-bold text-amber-800 tracking-wider uppercase">MY</span>
+                  <span className="text-[7px] font-extrabold text-amber-700 uppercase tracking-widest leading-none">JARS</span>
+                </div>
               </div>
 
               {/* Action Button */}

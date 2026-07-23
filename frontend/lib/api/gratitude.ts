@@ -2,7 +2,7 @@ import { api } from '../api-client';
 import type { BackendGratitudeEntry } from '../api-types';
 
 export const gratitudeApi = {
-  log: (input: { item1: string; item2: string; item3: string; date?: string }) =>
+  log: (input: { item1: string; item2: string; item3: string; notes?: string; date?: string }) =>
     api.post<{ entry: BackendGratitudeEntry }>('/gratitude', input),
 
   getToday: () =>

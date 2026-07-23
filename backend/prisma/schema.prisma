@@ -415,6 +415,7 @@ model GratitudeEntry {
   item1     String
   item2     String
   item3     String
+  notes     String?
 
   date      DateTime @db.Date
   createdAt DateTime @default(now())
