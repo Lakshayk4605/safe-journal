@@ -1,11 +1,11 @@
 import { gratitudeEntryRepository } from '../repositories/gratitudeEntry.repository';
 
 export const gratitudeService = {
-  async logGratitude(userId: string, input: { item1: string; item2: string; item3: string; notes?: string; date?: Date }) {
+  async logGratitude(userId: string, input: { item1: string; item2?: string; item3?: string; notes?: string; date?: Date }) {
     return gratitudeEntryRepository.upsertForDate(userId, input.date ?? new Date(), {
       item1: input.item1,
-      item2: input.item2,
-      item3: input.item3,
+      item2: input.item2 || '',
+      item3: input.item3 || '',
       notes: input.notes,
     });
   },

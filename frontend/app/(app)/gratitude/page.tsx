@@ -16,6 +16,8 @@ export default function GratitudePage() {
   const [item2, setItem2] = useState('');
   const [item3, setItem3] = useState('');
   const [notes, setNotes] = useState('');
+  const [writeMode, setWriteMode] = useState<'guided' | 'freeform'>('guided');
+  const [freeformText, setFreeformText] = useState('');
 
   // History state
   const [history, setHistory] = useState<BackendGratitudeEntry[]>([]);
@@ -42,10 +44,21 @@ export default function GratitudePage() {
 
       if (todayRes.data.entry) {
         setTodayEntry(todayRes.data.entry);
-        setItem1(todayRes.data.entry.item1);
-        setItem2(todayRes.data.entry.item2);
-        setItem3(todayRes.data.entry.item3);
+        const isFree = !todayRes.data.entry.item2 && !todayRes.data.entry.item3;
         setNotes(todayRes.data.entry.notes || '');
+        if (isFree) {
+          setWriteMode('freeform');
+          setFreeformText(todayRes.data.entry.item1);
+          setItem1('');
+          setItem2('');
+          setItem3('');
+        } else {
+          setWriteMode('guided');
+          setItem1(todayRes.data.entry.item1);
+          setItem2(todayRes.data.entry.item2);
+          setItem3(todayRes.data.entry.item3);
+          setFreeformText('');
+        }
         setIsEditing(false);
       } else {
         setTodayEntry(null);
@@ -53,6 +66,8 @@ export default function GratitudePage() {
         setItem2('');
         setItem3('');
         setNotes('');
+        setFreeformText('');
+        setWriteMode('guided');
         setIsEditing(true);
       }
 
@@ -71,20 +86,33 @@ export default function GratitudePage() {
   // Save/log daily gratitude
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!item1.trim() || !item2.trim() || !item3.trim()) {
-      setError('Please list all 3 items to complete your daily gratitude ritual.');
-      return;
+    setError('');
+
+    const payload: { item1: string; item2?: string; item3?: string; notes?: string } = {
+      notes: notes.trim() || undefined,
+    };
+
+    if (writeMode === 'freeform') {
+      if (!freeformText.trim()) {
+        setError('Please write your custom gratitude entry before saving.');
+        return;
+      }
+      payload.item1 = freeformText.trim();
+      payload.item2 = '';
+      payload.item3 = '';
+    } else {
+      if (!item1.trim() || !item2.trim() || !item3.trim()) {
+        setError('Please list all 3 items to complete your daily gratitude prompts.');
+        return;
+      }
+      payload.item1 = item1.trim();
+      payload.item2 = item2.trim();
+      payload.item3 = item3.trim();
     }
 
-    setError('');
     setSaving(true);
     try {
-      const { data } = await gratitudeApi.log({
-        item1: item1.trim(),
-        item2: item2.trim(),
-        item3: item3.trim(),
-        notes: notes.trim() || undefined,
-      });
+      const { data } = await gratitudeApi.log(payload);
 
       setTodayEntry(data.entry);
       setIsEditing(false);
@@ -202,19 +230,31 @@ export default function GratitudePage() {
                     <Sparkles className="w-4 h-4 text-emerald-400" />
                     You logged your gratitude for today! Keep the streak going.
                   </div>
-                  <div className="grid gap-3 pt-2">
-                    {[todayEntry.item1, todayEntry.item2, todayEntry.item3].map((item, index) => (
-                      <div 
-                        key={index} 
-                        className="flex items-start gap-4 p-4 bg-muted/30 border border-border/40 rounded-xl hover:border-amber-500/30 transition-all duration-300"
-                      >
-                        <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">
-                          {index + 1}
-                        </span>
-                        <p className="text-foreground font-medium">{item}</p>
-                      </div>
-                    ))}
-                  </div>
+                  
+                  {(!todayEntry.item2 && !todayEntry.item3) ? (
+                    /* Freeform Completed View */
+                    <div className="p-6 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-2xl text-center relative overflow-hidden">
+                      <Heart className="w-8 h-8 text-amber-500 fill-amber-500/20 mx-auto mb-3 animate-pulse" />
+                      <blockquote className="text-lg md:text-xl font-medium italic text-foreground leading-relaxed text-balance">
+                        &ldquo;{todayEntry.item1}&rdquo;
+                      </blockquote>
+                    </div>
+                  ) : (
+                    /* Guided Completed View */
+                    <div className="grid gap-3 pt-2">
+                      {[todayEntry.item1, todayEntry.item2, todayEntry.item3].map((item, index) => (
+                        <div 
+                          key={index} 
+                          className="flex items-start gap-4 p-4 bg-muted/30 border border-border/40 rounded-xl hover:border-amber-500/30 transition-all duration-300"
+                        >
+                          <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">
+                            {index + 1}
+                          </span>
+                          <p className="text-foreground font-medium">{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {todayEntry.notes && (
                     <div className="mt-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
@@ -224,58 +264,103 @@ export default function GratitudePage() {
                   )}
                 </div>
               ) : (
-                /* Write/Edit Form State */
+                 /* Write/Edit Form State */
                 <form onSubmit={handleSave} className="space-y-6">
+                  {/* Mode Selector */}
+                  <div className="flex bg-muted/65 p-1.5 rounded-xl border border-border/40 max-w-sm mx-auto mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setWriteMode('guided')}
+                      className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all cursor-pointer ${
+                        writeMode === 'guided'
+                          ? 'bg-amber-500 text-white shadow-md'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Guided Prompts
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWriteMode('freeform')}
+                      className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all cursor-pointer ${
+                        writeMode === 'freeform'
+                          ? 'bg-amber-500 text-white shadow-md'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Freeform Entry
+                    </button>
+                  </div>
+
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">1</span>
-                        What is one thing that brought you joy today?
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="e.g. A kind smile from a stranger, warm coffee..."
-                        value={item1}
-                        onChange={(e) => setItem1(e.target.value)}
-                        className="text-base py-5 border-border/50 bg-background/50 focus:border-amber-500/50"
-                        required
-                      />
-                    </div>
+                    {writeMode === 'guided' ? (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">1</span>
+                            What is one thing that brought you joy today?
+                          </label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. A kind smile from a stranger, warm coffee..."
+                            value={item1}
+                            onChange={(e) => setItem1(e.target.value)}
+                            className="text-base py-5 border-border/50 bg-background/50 focus:border-amber-500/50"
+                            required
+                          />
+                        </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">2</span>
-                        What is a recent win or positive outcome?
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="e.g. Finished a hard task at work, went for a run..."
-                        value={item2}
-                        onChange={(e) => setItem2(e.target.value)}
-                        className="text-base py-5 border-border/50 bg-background/50 focus:border-amber-500/50"
-                        required
-                      />
-                    </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">2</span>
+                            What is a recent win or positive outcome?
+                          </label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. Finished a hard task at work, went for a run..."
+                            value={item2}
+                            onChange={(e) => setItem2(e.target.value)}
+                            className="text-base py-5 border-border/50 bg-background/50 focus:border-amber-500/50"
+                            required
+                          />
+                        </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">3</span>
-                        What is something simple you are thankful to have?
-                      </label>
-                      <Input
-                        type="text"
-                        placeholder="e.g. My comfortable bed, clean drinking water..."
-                        value={item3}
-                        onChange={(e) => setItem3(e.target.value)}
-                        className="text-base py-5 border-border/50 bg-background/50 focus:border-amber-500/50"
-                        required
-                      />
-                    </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">3</span>
+                            What is something simple you are thankful to have?
+                          </label>
+                          <Input
+                            type="text"
+                            placeholder="e.g. My comfortable bed, clean drinking water..."
+                            value={item3}
+                            onChange={(e) => setItem3(e.target.value)}
+                            className="text-base py-5 border-border/50 bg-background/50 focus:border-amber-500/50"
+                            required
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-2 animate-in fade-in duration-300">
+                        <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                          What are you grateful for today?
+                        </label>
+                        <textarea
+                          placeholder="Write your custom gratitude entry here in your own words..."
+                          value={freeformText}
+                          onChange={(e) => setFreeformText(e.target.value)}
+                          className="w-full min-h-32 p-4 rounded-xl border border-border/50 bg-background/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none text-base leading-relaxed"
+                          required
+                        />
+                      </div>
+                    )}
 
                     {/* Additional Thoughts Box */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">4</span>
+                        <span className="w-5 h-5 flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full font-bold text-xs">
+                          {writeMode === 'guided' ? '4' : '2'}
+                        </span>
                         Additional Thoughts / Own Notes (Optional)
                       </label>
                       <textarea
@@ -342,20 +427,31 @@ export default function GratitudePage() {
                         </div>
 
                         <div className="bg-card/30 border border-border/40 rounded-xl p-4 space-y-2 hover:border-amber-500/20 hover:bg-card/50 transition-all duration-300">
-                          <div className="grid gap-1 text-sm md:grid-cols-3">
-                            <div className="p-2 border-r border-border/30 last:border-0">
-                              <span className="text-xs text-muted-foreground block font-semibold mb-1">JOY</span>
-                              <p className="text-foreground font-medium leading-relaxed">{entry.item1}</p>
+                          {(!entry.item2 && !entry.item3) ? (
+                            /* Freeform Timeline Item */
+                            <div className="py-2 text-center">
+                              <Heart className="w-4 h-4 text-amber-500 fill-amber-500/10 mx-auto mb-1.5 animate-pulse" />
+                              <blockquote className="text-sm font-medium italic text-foreground leading-relaxed">
+                                &ldquo;{entry.item1}&rdquo;
+                              </blockquote>
                             </div>
-                            <div className="p-2 border-r border-border/30 last:border-0">
-                              <span className="text-xs text-muted-foreground block font-semibold mb-1">WIN</span>
-                              <p className="text-foreground font-medium leading-relaxed">{entry.item2}</p>
+                          ) : (
+                            /* Guided Timeline Item */
+                            <div className="grid gap-1 text-sm md:grid-cols-3">
+                              <div className="p-2 border-r border-border/30 last:border-0">
+                                <span className="text-xs text-muted-foreground block font-semibold mb-1">JOY</span>
+                                <p className="text-foreground font-medium leading-relaxed">{entry.item1}</p>
+                              </div>
+                              <div className="p-2 border-r border-border/30 last:border-0">
+                                <span className="text-xs text-muted-foreground block font-semibold mb-1">WIN</span>
+                                <p className="text-foreground font-medium leading-relaxed">{entry.item2}</p>
+                              </div>
+                              <div className="p-2 last:border-0">
+                                <span className="text-xs text-muted-foreground block font-semibold mb-1">SIMPLE COMFORT</span>
+                                <p className="text-foreground font-medium leading-relaxed">{entry.item3}</p>
+                              </div>
                             </div>
-                            <div className="p-2 last:border-0">
-                              <span className="text-xs text-muted-foreground block font-semibold mb-1">SIMPLE COMFORT</span>
-                              <p className="text-foreground font-medium leading-relaxed">{entry.item3}</p>
-                            </div>
-                          </div>
+                          )}
 
                           {entry.notes && (
                             <div className="mt-2 pt-2 border-t border-border/30 text-xs text-muted-foreground italic leading-normal">
