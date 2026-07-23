@@ -29,6 +29,14 @@ const writingPrompts = [
   "Describe the most relaxing part of your week so far."
 ];
 
+const MOOD_BUTTONS = [
+  { emoji: '😢', mood: 'SAD', score: 1, label: 'Sad', color: '#64748b' },
+  { emoji: '😰', mood: 'ANXIOUS', score: 2, label: 'Anxious', color: '#f97316' },
+  { emoji: '😐', mood: 'OKAY', score: 3, label: 'Okay', color: '#eab308' },
+  { emoji: '🙂', mood: 'GOOD', score: 4, label: 'Good', color: '#3b82f6' },
+  { emoji: '🌟', mood: 'EXCELLENT', score: 5, label: 'Excellent', color: '#22c55e' },
+];
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -37,6 +45,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [showStreakModal, setShowStreakModal] = useState(false);
+  const [moodParticles, setMoodParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    r: number;
+    color: string;
+    size: number;
+  }>>([]);
 
   const quote = useMemo(
     () => inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)],
@@ -96,6 +112,43 @@ export default function DashboardPage() {
       nextPrompt = writingPrompts[Math.floor(Math.random() * writingPrompts.length)];
     }
     setCurrentPrompt(nextPrompt);
+  };
+
+  const handleLogMood = async (m: typeof MOOD_BUTTONS[0], e: React.MouseEvent<HTMLButtonElement>) => {
+    // Generate explosive particle burst relative to click location in card
+    const newParticles = Array.from({ length: 16 }).map((_, i) => {
+      const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+      const distance = 40 + Math.random() * 50;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance;
+      const r = 45 + Math.random() * 180;
+      const size = 5 + Math.random() * 6;
+      return {
+        id: Math.random() + i,
+        x,
+        y,
+        r,
+        color: m.color,
+        size,
+      };
+    });
+    setMoodParticles(newParticles);
+
+    // Clear particles after animation
+    setTimeout(() => {
+      setMoodParticles([]);
+    }, 1300);
+
+    try {
+      const result = await moodApi.create({
+        mood: m.mood as any,
+        score: m.score,
+        notes: 'Quick check-in from dashboard',
+      });
+      setTodayMood(result.data.entry);
+    } catch {
+      // Degrade silently
+    }
   };
 
   if (!mounted || !user) return null;
@@ -256,21 +309,58 @@ export default function DashboardPage() {
 
         {/* Right Column - Stats */}
         <div className="space-y-6">
-          {/* Today's Mood */}
-          {todayMood && (
-            <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold">Latest Mood</h3>
-              <div className="flex items-center gap-4">
-                <MoodBadge mood={fromBackendMood(todayMood.mood)} size="lg" />
-                <div>
-                  <p className="text-2xl font-bold">{todayMood.score}/5</p>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {fromBackendMood(todayMood.mood)}
-                  </p>
+          {/* Interactive Mood Logger Widget */}
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4 relative overflow-hidden">
+            <h3 className="font-semibold text-sm flex items-center gap-2 text-primary">
+              <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500/20" />
+              How are you feeling right now?
+            </h3>
+            
+            {todayMood ? (
+              <div className="flex items-center gap-3 bg-muted/30 p-3 rounded-lg border border-border/40">
+                <MoodBadge mood={fromBackendMood(todayMood.mood)} size="md" />
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Logged today:</span>{' '}
+                  <span className="font-bold capitalize text-foreground">{fromBackendMood(todayMood.mood)} ({todayMood.score}/5)</span>
                 </div>
               </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Tap an emoji below to check-in and log your mood.</p>
+            )}
+
+            <div className="relative flex items-center justify-between gap-1 pt-1">
+              {/* Confetti Particles */}
+              {moodParticles.map((p) => (
+                <span
+                  key={p.id}
+                  className="absolute rounded-full pointer-events-none animate-particle z-20"
+                  style={{
+                    backgroundColor: p.color,
+                    width: `${p.size}px`,
+                    height: `${p.size}px`,
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: `-${p.size / 2}px`,
+                    marginTop: `-${p.size / 2}px`,
+                    '--x': `${p.x}px`,
+                    '--y': `${p.y}px`,
+                    '--r': `${p.r}deg`,
+                  } as React.CSSProperties}
+                />
+              ))}
+
+              {MOOD_BUTTONS.map((m) => (
+                <button
+                  key={m.mood}
+                  onClick={(e) => handleLogMood(m, e)}
+                  title={m.label}
+                  className="relative p-2.5 text-2xl rounded-full bg-muted/40 hover:bg-muted/90 hover:scale-125 transition-all duration-300 cursor-pointer active:scale-95 z-10"
+                >
+                  {m.emoji}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Stats Cards */}
           <div className="bg-card border border-border rounded-xl p-6 space-y-4">

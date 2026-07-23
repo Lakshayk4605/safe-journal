@@ -26,6 +26,8 @@ export default function GratitudePage() {
   const [drawnItem, setDrawnItem] = useState<{ item: string; date: string } | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [showJarDrawing, setShowJarDrawing] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [sparkles, setSparkles] = useState<Array<{ id: number; left: number; top: number; size: number; delay: number }>>([]);
 
   // Load today's entry and history
   const loadData = async () => {
@@ -93,15 +95,40 @@ export default function GratitudePage() {
     }
   };
 
-  // Draw random past memory from the jar
+  // Draw random past memory from the jar with shake & sparkle animation
   const handleDraw = async () => {
     setDrawing(true);
     setShowJarDrawing(false);
+    setIsShaking(true);
+
+    // Generate coordinates starting near the neck/top of the jar
+    const newSparkles = Array.from({ length: 12 }).map((_, i) => ({
+      id: Math.random() + i,
+      left: 30 + Math.random() * 40,
+      top: 5 + Math.random() * 15,
+      size: 8 + Math.random() * 12,
+      delay: Math.random() * 0.4,
+    }));
+    setSparkles(newSparkles);
+
+    // Stop shaking after animation duration
+    setTimeout(() => {
+      setIsShaking(false);
+    }, 600);
+
+    // Clear particles after float completes
+    setTimeout(() => {
+      setSparkles([]);
+    }, 1800);
+
     try {
       const res = await gratitudeApi.getRandom();
       if (res.data) {
         setDrawnItem(res.data);
-        setShowJarDrawing(true);
+        // Delay popup showing slightly so user can enjoy the floating sparkles
+        setTimeout(() => {
+          setShowJarDrawing(true);
+        }, 1100);
       } else {
         setDrawnItem(null);
         setError('Your gratitude jar is empty! Log your first items to fill it.');
@@ -327,7 +354,24 @@ export default function GratitudePage() {
               </div>
 
               {/* Gratitude Jar Graphic */}
-              <div className="relative w-44 h-56 my-4 flex items-center justify-center">
+              <div className={`relative w-44 h-56 my-4 flex items-center justify-center transition-transform duration-300 ${
+                isShaking ? 'animate-shake' : ''
+              }`}>
+                {/* Floating sparkles */}
+                {sparkles.map((p) => (
+                  <Sparkles
+                    key={p.id}
+                    className="absolute text-amber-400 fill-amber-300 pointer-events-none animate-float-sparkle z-20"
+                    style={{
+                      left: `${p.left}%`,
+                      top: `${p.top}%`,
+                      width: `${p.size}px`,
+                      height: `${p.size}px`,
+                      animationDelay: `${p.delay}s`,
+                    } as React.CSSProperties}
+                  />
+                ))}
+
                 {/* Glass Jar Body */}
                 <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-amber-500/10 border-2 border-white/20 rounded-[40px] shadow-inner shadow-white/15 flex items-center justify-center overflow-hidden">
                   

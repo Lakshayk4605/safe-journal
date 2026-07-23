@@ -28,11 +28,132 @@ export default function VoiceJournalPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+
+  const startVisualizer = (stream: MediaStream) => {
+    if (typeof window === 'undefined') return;
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    try {
+      const audioCtx = new AudioContextClass();
+      audioCtxRef.current = audioCtx;
+
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      analyserRef.current = analyser;
+
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      sourceRef.current = source;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      const draw = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        animationFrameRef.current = requestAnimationFrame(draw);
+
+        analyser.getByteTimeDomainData(dataArray);
+
+        // Adjust canvas resolution dynamically
+        const rect = canvas.getBoundingClientRect();
+        if (canvas.width !== rect.width || canvas.height !== rect.height) {
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+        }
+
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw background grid lines for a high-tech lab feel
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < width; i += 40) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i, height);
+          ctx.stroke();
+        }
+        for (let i = 0; i < height; i += 20) {
+          ctx.beginPath();
+          ctx.moveTo(0, i);
+          ctx.lineTo(width, i);
+          ctx.stroke();
+        }
+
+        // Generate glowing linear gradient for the waveform
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        gradient.addColorStop(0, 'var(--primary)');
+        gradient.addColorStop(0.5, 'var(--accent)');
+        gradient.addColorStop(1, 'var(--excellent, #22c55e)');
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(224, 122, 60, 0.4)';
+
+        ctx.beginPath();
+
+        const sliceWidth = width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = (v * height) / 2;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+
+          x += sliceWidth;
+        }
+
+        ctx.lineTo(width, height / 2);
+        ctx.stroke();
+      };
+
+      draw();
+    } catch (e) {
+      console.error('Failed to init visualizer', e);
+    }
+  };
+
+  const stopVisualizer = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
+    }
+    if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+      audioCtxRef.current.close();
+      audioCtxRef.current = null;
+    }
+  };
+
   useEffect(() => {
     return () => {
       // Clean up mic access and any running timer if the user navigates away mid-recording.
       streamRef.current?.getTracks().forEach((track) => track.stop());
       if (timerRef.current) clearInterval(timerRef.current);
+      stopVisualizer();
     };
   }, []);
 
@@ -59,6 +180,7 @@ export default function VoiceJournalPage() {
       setIsRecording(true);
       setRecordingTime(0);
       timerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
+      startVisualizer(stream);
     } catch {
       setError('Could not access your microphone. Please check your browser permissions.');
     }
@@ -68,6 +190,7 @@ export default function VoiceJournalPage() {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
     if (timerRef.current) clearInterval(timerRef.current);
+    stopVisualizer();
   };
 
   const handleToggleRecording = () => {
@@ -81,6 +204,7 @@ export default function VoiceJournalPage() {
   const handleReRecord = () => {
     setAudioBlob(null);
     setRecordingTime(0);
+    stopVisualizer();
   };
 
   const handleSave = async () => {
@@ -147,18 +271,16 @@ export default function VoiceJournalPage() {
             )}
           </div>
 
-          {/* Waveform Animation */}
-          <div className="flex items-end justify-center gap-1 h-16">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className={`w-1 rounded-full transition-all ${isRecording ? 'bg-primary animate-pulse' : 'bg-muted'}`}
-                style={{
-                  height: isRecording ? `${Math.random() * 100 + 20}%` : '20%',
-                  animation: isRecording ? `pulse ${0.5 + Math.random() * 0.5}s infinite` : 'none',
-                }}
+          {/* Reactive Waveform Canvas */}
+          <div className="relative w-full h-24 my-4 flex items-center justify-center">
+            {isRecording ? (
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full rounded-xl bg-card border border-border/50 block shadow-inner"
               />
-            ))}
+            ) : (
+              <div className="w-full h-0.5 bg-muted rounded-full opacity-40" />
+            )}
           </div>
         </div>
 
