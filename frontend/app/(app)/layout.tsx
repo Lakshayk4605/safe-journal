@@ -132,7 +132,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Immersive Dynamic Ambient Backdrop */}
       <div className="theme-ambient-backdrop fixed inset-0 pointer-events-none z-0" />
       <Navigation />
-      <main className="relative z-10 ml-64 flex-1 min-h-screen bg-transparent">
+      <main className="relative z-10 ml-0 md:ml-64 flex-1 min-h-screen pb-20 md:pb-0 bg-transparent">
         <div className="print-header">Safe Journal</div>
         {children}
       </main>

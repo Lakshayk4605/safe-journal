@@ -100,11 +100,11 @@ export default function DashboardPage() {
   const recentEntries = entries.slice(1, 4);
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold">Welcome back, {user.name}!</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl md:text-4xl font-bold">Welcome back, {user.name}!</h1>
+        <p className="text-sm text-muted-foreground">
           {user.streakDays} day streak • {user.totalEntries} total entries
         </p>
       </div>

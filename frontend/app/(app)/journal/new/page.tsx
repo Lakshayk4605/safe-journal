@@ -252,15 +252,15 @@ export default function NewEntryPage() {
   };
 
   return (
-    <div className="p-8 space-y-8 max-w-4xl">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-4xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <Link href="/journal" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+      <div className="flex items-center justify-between gap-2">
+        <Link href="/journal" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm md:text-base flex-shrink-0">
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
-        <h1 className="text-3xl font-bold">New Journal Entry</h1>
-        <div className="w-8" />
+        <h1 className="text-xl md:text-3xl font-bold text-center truncate">New Journal Entry</h1>
+        <div className="w-12 md:w-8 flex-shrink-0" />
       </div>
 
       {error && (
@@ -447,8 +447,8 @@ export default function NewEntryPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t border-border">
-          <Link href="/journal" className="flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
+          <Link href="/journal" className="flex-1 order-3 sm:order-1">
             <Button variant="outline" className="w-full cursor-pointer" disabled={saving}>
               Cancel
             </Button>
@@ -458,7 +458,7 @@ export default function NewEntryPage() {
             variant="secondary"
             onClick={() => saveEntry(true)}
             disabled={saving || !title || !content}
-            className="flex-1 gap-2 hover:scale-105 active:scale-95 duration-200 cursor-pointer"
+            className="flex-1 gap-2 hover:scale-105 active:scale-95 duration-200 cursor-pointer order-2 sm:order-2"
           >
             <Sparkles className="w-4 h-4 text-secondary-foreground" />
             {saving ? 'Saving...' : 'Save & Get AI Help'}
@@ -467,7 +467,7 @@ export default function NewEntryPage() {
             type="button"
             onClick={() => saveEntry(false)}
             disabled={saving || !title || !content}
-            className="flex-1 gap-2 hover:scale-105 active:scale-95 duration-200 cursor-pointer"
+            className="flex-1 gap-2 hover:scale-105 active:scale-95 duration-200 cursor-pointer order-1 sm:order-3"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Saving...' : 'Save Entry'}
