@@ -23,7 +23,8 @@ import {
   Heart,
   Bookmark,
   Edit3,
-  Check
+  Check,
+  Quote
 } from 'lucide-react';
 
 interface StickyNote {
@@ -354,31 +355,36 @@ export default function JournalPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('dashboard_sticky_notes');
-      if (saved) {
-        setStickyNotes(JSON.parse(saved));
-      } else {
-        const defaultNotes: StickyNote[] = [
-          {
-            id: '1',
-            title: 'Mindful Reminder 🧘',
-            content: 'Take 3 deep breaths before starting work. Smile!',
-            color: 'yellow',
-            isFavorite: true,
-            isBookmarked: true,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: '2',
-            title: 'Weekly Manifestation 💫',
-            content: 'I am capable of achieving all my goals with calmness and focus.',
-            color: 'blue',
-            isFavorite: false,
-            isBookmarked: true,
-            createdAt: new Date().toISOString()
-          }
-        ];
-        setStickyNotes(defaultNotes);
-        localStorage.setItem('dashboard_sticky_notes', JSON.stringify(defaultNotes));
+      try {
+        if (saved) {
+          setStickyNotes(JSON.parse(saved));
+        } else {
+          const defaultNotes: StickyNote[] = [
+            {
+              id: '1',
+              title: 'Mindful Reminder 🧘',
+              content: 'Take 3 deep breaths before starting work. Smile!',
+              color: 'yellow',
+              isFavorite: true,
+              isBookmarked: true,
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: '2',
+              title: 'Weekly Manifestation 💫',
+              content: 'I am capable of achieving all my goals with calmness and focus.',
+              color: 'blue',
+              isFavorite: false,
+              isBookmarked: true,
+              createdAt: new Date().toISOString()
+            }
+          ];
+          setStickyNotes(defaultNotes);
+          localStorage.setItem('dashboard_sticky_notes', JSON.stringify(defaultNotes));
+        }
+      } catch (e) {
+        console.error('Failed to parse sticky notes:', e);
+        localStorage.removeItem('dashboard_sticky_notes');
       }
     }
   }, []);
