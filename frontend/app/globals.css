@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -2045,5 +2046,10 @@ textarea,
 .animate-smoke {
   transform-origin: bottom center;
   animation: smoke-float 4s infinite linear;
+}
+
+/* Custom handwriting utility font styling */
+.font-handwriting {
+  font-family: 'Caveat', cursive, sans-serif !important;
 }
 
