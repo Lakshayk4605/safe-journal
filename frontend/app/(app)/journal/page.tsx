@@ -24,7 +24,8 @@ import {
   Bookmark,
   Edit3,
   Check,
-  Quote
+  Quote,
+  BookOpen
 } from 'lucide-react';
 
 interface StickyNote {
@@ -79,6 +80,45 @@ const moodBadgeClasses: Record<Mood, string> = {
   anxious: 'bg-rose-500',
 };
 
+function FountainPenGraphic() {
+  return (
+    <svg viewBox="0 0 120 400" className="w-14 h-44 drop-shadow-2xl animate-pen-glide filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.6)]">
+      <defs>
+        <linearGradient id="goldCap" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#92400e" />
+          <stop offset="25%" stopColor="#f59e0b" />
+          <stop offset="60%" stopColor="#fef08a" />
+          <stop offset="100%" stopColor="#78350f" />
+        </linearGradient>
+        <linearGradient id="silverGrip" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#334155" />
+          <stop offset="50%" stopColor="#cbd5e1" />
+          <stop offset="100%" stopColor="#1e293b" />
+        </linearGradient>
+        <linearGradient id="nibGold" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#fbbf24" />
+          <stop offset="50%" stopColor="#fff099" />
+          <stop offset="100%" stopColor="#b45309" />
+        </linearGradient>
+      </defs>
+
+      {/* Main Pen Body */}
+      <rect x="42" y="10" width="36" height="230" rx="18" fill="url(#goldCap)" stroke="#451a03" strokeWidth="2" />
+      {/* Gold Ring Trim */}
+      <rect x="42" y="140" width="36" height="10" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+      {/* Clip */}
+      <rect x="56" y="25" width="8" height="110" rx="4" fill="#fef08a" stroke="#78350f" strokeWidth="1" />
+      {/* Metallic Silver Grip Section */}
+      <polygon points="44,240 76,240 70,315 50,315" fill="url(#silverGrip)" stroke="#0f172a" strokeWidth="1.5" />
+      {/* Metallic Gold Nib */}
+      <polygon points="50,315 70,315 64,375 60,392 56,375" fill="url(#nibGold)" stroke="#78350f" strokeWidth="1.5" />
+      {/* Nib slit & breather hole */}
+      <line x1="60" y1="315" x2="60" y2="385" stroke="#451a03" strokeWidth="1.5" />
+      <circle cx="60" cy="345" r="3.5" fill="#451a03" />
+    </svg>
+  );
+}
+
 function HandwritingWriter({ text = '' }: { text?: string }) {
   const safeText = text || '';
   const [displayedText, setDisplayedText] = useState('');
@@ -94,30 +134,24 @@ function HandwritingWriter({ text = '' }: { text?: string }) {
       const timer = setTimeout(() => {
         setDisplayedText((prev) => prev + safeText[currentIndex]);
         setCurrentIndex((prev) => prev + 1);
-      }, 20);
+      }, 25);
       return () => clearTimeout(timer);
     }
   }, [safeText, currentIndex]);
 
   return (
-    <div className="relative font-handwriting text-2xl text-foreground/95 tracking-wide leading-relaxed min-h-[40px] pt-1 select-none">
-      {displayedText}
+    <div className="relative font-handwriting text-2xl md:text-3xl text-slate-900 dark:text-amber-100 tracking-wide leading-[2.25rem] pt-0.5 select-none bg-ruled-paper px-12 py-4 rounded-lg shadow-inner min-h-[180px] border border-amber-900/10">
+      {/* Red margin line indicator visual */}
+      <div className="absolute top-0 bottom-0 left-11 w-[2px] bg-red-400/60 pointer-events-none" />
+
+      <span className="whitespace-pre-wrap">{displayedText}</span>
+
+      {/* Floating 3D Pen Graphic attached to active cursor */}
       {currentIndex < safeText.length && (
-        <span className="inline-block animate-bounce ml-0.5 origin-bottom-right" style={{ verticalAlign: 'middle' }}>
-          <svg
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-primary -rotate-45"
-          >
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-          </svg>
+        <span className="inline-block relative -ml-3 -top-2 z-30 pointer-events-none" style={{ verticalAlign: 'baseline' }}>
+          <div className="absolute -top-36 -left-4 transform -rotate-[35deg]">
+            <FountainPenGraphic />
+          </div>
         </span>
       )}
     </div>
@@ -919,30 +953,60 @@ export default function JournalPage() {
         )}
       </div>
 
-      {/* Immersive Side Drawer Drawer Details */}
+      {/* Immersive 3D Physical Open Leather Diary Details */}
       {showDrawer && selectedDateStr && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop */}
-          <div
-            onClick={() => setShowDrawer(false)}
-            className="absolute inset-0 bg-background/40 backdrop-blur-xs transition-opacity"
-          />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+          {/* Backdrop Clicker */}
+          <div className="absolute inset-0" onClick={() => setShowDrawer(false)} />
 
-          {/* Drawer Panel */}
-          <div className="relative w-full max-w-lg h-full bg-card/95 border-l border-border/80 shadow-2xl backdrop-blur-md p-6 flex flex-col z-10 animate-in slide-in-from-right duration-300">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-foreground">Entries Detail</h3>
-                <p className="text-xs text-muted-foreground font-semibold">{selectedDateFormatted}</p>
+          {/* 3D Physical Open Notebook Container */}
+          <div className="relative w-full max-w-4xl max-h-[92vh] bg-[#2a170d] border-4 border-[#4a2e19] rounded-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] p-3 sm:p-6 flex flex-col z-10 overflow-hidden transform transition-all animate-in zoom-in-95 duration-300">
+            {/* Gold Brass Corner Accents */}
+            <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 border-amber-500/80 rounded-tl-sm pointer-events-none" />
+            <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 border-amber-500/80 rounded-tr-sm pointer-events-none" />
+            <div className="absolute bottom-2 left-2 w-6 h-6 border-b-4 border-l-4 border-amber-500/80 rounded-bl-sm pointer-events-none" />
+            <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 border-amber-500/80 rounded-br-sm pointer-events-none" />
+
+            {/* Book Cover Stitch Pattern */}
+            <div className="absolute inset-2 border border-dashed border-amber-700/40 rounded-[22px] pointer-events-none" />
+
+            {/* Notebook Header Bar */}
+            <div className="flex items-center justify-between pb-3 px-4 z-20 border-b border-amber-900/40 text-amber-200">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-amber-900/60 border border-amber-600/50 flex items-center justify-center text-amber-300 shadow-md">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold font-serif text-amber-100 tracking-wide">Personal Journal Diary</h3>
+                  <p className="text-xs text-amber-300/80 font-medium">📅 {selectedDateFormatted}</p>
+                </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowDrawer(false)}>
-                <X className="w-5 h-5" />
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowDrawer(false)}
+                className="text-amber-300 hover:text-white hover:bg-amber-900/50 rounded-full cursor-pointer"
+              >
+                <X className="w-6 h-6" />
               </Button>
             </div>
 
-            {/* Entries Body list */}
-            <div className="flex-1 overflow-y-auto py-6 space-y-6">
+            {/* Open Ruled Notebook Paper Area */}
+            <div className="flex-1 overflow-y-auto my-3 relative rounded-xl bg-[#fffdf5] dark:bg-[#181512] shadow-2xl border border-amber-950/20 p-4 sm:p-8 space-y-8">
+              
+              {/* Central Spiral Binder Rings Visual */}
+              <div className="absolute left-6 top-0 bottom-0 flex flex-col justify-around py-4 pointer-events-none z-20 opacity-80">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="w-8 h-3.5 -ml-10 rounded-full bg-gradient-to-r from-slate-400 via-slate-100 to-slate-600 shadow-md border border-slate-700" />
+                ))}
+              </div>
+
+              {/* Satin Red Bookmark Ribbon Hanging out */}
+              <div className="absolute right-12 top-0 w-6 h-28 bg-gradient-to-b from-red-700 via-red-600 to-red-800 shadow-xl rounded-b-md z-20 pointer-events-none border-x border-red-900">
+                <div className="absolute bottom-0 left-0 right-0 h-4 bg-amber-500/80 clip-triangle" />
+              </div>
+
               {selectedDayEntries.length > 0 ? (
                 selectedDayEntries.map((entry) => {
                   const mood = fromBackendMood(entry.mood);
@@ -950,125 +1014,79 @@ export default function JournalPage() {
                   return (
                     <div
                       key={entry.id}
-                      className="border border-border/80 bg-background/30 rounded-xl p-5 space-y-4 hover:border-primary/40 transition-all relative overflow-hidden"
+                      className="relative bg-ruled-paper rounded-xl p-6 sm:p-8 shadow-md border border-amber-900/10 space-y-4 overflow-hidden"
                     >
-                      {/* Mood Indicator Ribbon */}
-                      <div className={`absolute top-0 left-0 right-0 h-1.5 ${moodBadgeClasses[mood]}`} />
-
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-foreground text-lg">{entry.title}</h4>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            ⏱️ Logged at{' '}
-                            {new Date(entry.createdAt).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                      {/* Entry Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-red-300/40 pb-3 pl-6">
+                        <div>
+                          <h4 className="font-script text-3xl font-bold text-amber-950 dark:text-amber-100 tracking-wide">
+                            {entry.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground font-semibold mt-1">
+                            ⏱️ Recorded at {new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                         <MoodBadge mood={mood} size="sm" label />
                       </div>
 
+                      {/* Animated Pen Fountain Writing Area */}
                       <HandwritingWriter text={entry.content} />
 
-                      {/* Tags & Emotions */}
-                      {(entry.tags.length > 0 || entry.emotions.length > 0) && (
-                        <div className="flex flex-wrap gap-1.5 pt-2">
-                          {entry.tags.map(({ tag }) => (
-                            <span
-                              key={tag.id}
-                              className="text-[10px] px-2 py-0.5 bg-secondary/15 text-secondary rounded-sm font-semibold"
-                            >
-                              #{tag.name}
-                            </span>
-                          ))}
-                          {entry.emotions.map(({ emotion }) => (
-                            <span
-                              key={emotion.id}
-                              className="text-[10px] px-1.5 py-0.5 bg-muted rounded-sm text-muted-foreground font-semibold"
-                            >
-                              {emotion.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* AI Reflection box */}
+                      {/* AI Reflections & Tags */}
                       {entry.aiReflection && (
-                        <div className="bg-accent/5 border-l-4 border-accent p-3 rounded-r-lg space-y-1">
-                          <div className="flex items-center gap-1 text-[10px] text-accent font-bold">
-                            <Sparkles className="w-3 h-3" />
-                            <span>AI INSIGHTS</span>
+                        <div className="ml-6 bg-amber-500/10 border-l-4 border-amber-600 p-4 rounded-r-xl space-y-1 my-4">
+                          <div className="flex items-center gap-1.5 text-xs text-amber-800 dark:text-amber-400 font-bold">
+                            <Sparkles className="w-4 h-4 text-amber-500" />
+                            <span>THERAPIST INSIGHT</span>
                           </div>
-                          <p className="text-xs italic text-foreground/85 leading-normal">
-                            {entry.aiReflection.content}
+                          <p className="text-sm italic font-serif text-amber-950 dark:text-amber-200">
+                            &quot;{entry.aiReflection.content}&quot;
                           </p>
                         </div>
                       )}
 
-                      {/* Stats footer bar */}
-                      <div className="text-[10px] text-muted-foreground border-t border-border/40 pt-3 flex justify-between font-semibold">
-                        <span>📝 {wordCount} words</span>
-                        {entry.isFavorite && (
-                          <span className="text-amber-500 flex items-center gap-0.5">
-                            ★ Favorite
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Action buttons footer */}
-                      <div className="flex items-center gap-1.5 pt-2 border-t border-border/20">
-                        <Link href={`/journal/${entry.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs h-8">
-                            <Edit2 className="w-3.5 h-3.5" />
-                            Edit
+                      {/* Footer Action Buttons */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-amber-900/10 text-xs font-semibold pl-6">
+                        <span className="text-amber-900/70 dark:text-amber-400/80">📝 {wordCount} words recorded</span>
+                        
+                        <div className="flex items-center gap-2">
+                          <Link href={`/journal/${entry.id}`}>
+                            <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs border-amber-800/30">
+                              <Edit2 className="w-3.5 h-3.5" /> Edit
+                            </Button>
+                          </Link>
+                          <Button variant="outline" size="sm" onClick={() => handleDuplicate(entry)} className="gap-1.5 h-8 text-xs border-amber-800/30">
+                            <Copy className="w-3.5 h-3.5" /> Duplicate
                           </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDuplicate(entry)}
-                          className="gap-1.5 text-xs h-8"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          Duplicate
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleShare(entry)}
-                          className="gap-1.5 text-xs h-8"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                          Share
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(entry.id)}
-                          className="gap-1.5 text-xs h-8 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleShare(entry)} className="gap-1.5 h-8 text-xs border-amber-800/30">
+                            <Share2 className="w-3.5 h-3.5" /> Share
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(entry.id)} className="gap-1.5 h-8 text-xs text-rose-600 hover:bg-rose-500/10 border-rose-300">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-12">No entries logged.</p>
+                <div className="py-20 text-center space-y-3">
+                  <BookOpen className="w-12 h-12 text-amber-800/40 mx-auto" />
+                  <p className="text-lg font-serif text-amber-900/70 dark:text-amber-400">No diary entry written for this date.</p>
+                </div>
               )}
             </div>
 
-            {/* Drawer Footer Actions */}
-            <div className="pt-4 border-t border-border flex flex-col gap-2">
-              <Link href={`/journal/new?date=${selectedDateStr}`}>
-                <Button className="w-full gap-2 bg-primary hover:bg-primary/90">
+            {/* Notebook Footer Bar */}
+            <div className="pt-2 px-4 flex items-center justify-between border-t border-amber-900/40">
+              <Link href={`/journal/new?date=${selectedDateStr}`} className="w-full sm:w-auto">
+                <Button className="w-full gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-lg">
                   <Plus className="w-4 h-4" />
-                  Add New Entry
+                  Write New Diary Page
                 </Button>
               </Link>
-              <Button variant="outline" className="w-full" onClick={() => setShowDrawer(false)}>
-                Close Panel
+              <Button variant="ghost" className="text-amber-300 hover:text-white" onClick={() => setShowDrawer(false)}>
+                Close Diary
               </Button>
             </div>
           </div>
