@@ -568,11 +568,8 @@ export default function NewEntryPage() {
                           style={{ width: `${scanProgress}%` }}
                         />
                       </div>
-                    </div>
                   </div>
                 )}
-              </div>
-            </div>
 
             {/* Emotions */}
             <div className="space-y-3">
