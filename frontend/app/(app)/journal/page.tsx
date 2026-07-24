@@ -46,7 +46,7 @@ const STICKY_COLORS = [
 ];
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { journalApi } from '@/lib/api/journal';
 import { fromBackendMood, toBackendMood } from '@/lib/mood-map';
 import type { BackendJournalEntry } from '@/lib/api-types';
@@ -123,6 +123,9 @@ function HandwritingWriter({ text = '' }: { text?: string }) {
   const safeText = text || '';
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<HTMLSpanElement>(null);
+  const [penPos, setPenPos] = useState({ left: 45, top: 15 });
 
   useEffect(() => {
     setDisplayedText('');
@@ -139,20 +142,38 @@ function HandwritingWriter({ text = '' }: { text?: string }) {
     }
   }, [safeText, currentIndex]);
 
+  useEffect(() => {
+    if (markerRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const markerRect = markerRef.current.getBoundingClientRect();
+      const left = markerRect.left - containerRect.left;
+      const top = markerRect.top - containerRect.top;
+      setPenPos({
+        left: Math.max(35, left),
+        top: Math.max(10, top)
+      });
+    }
+  }, [displayedText]);
+
   return (
-    <div className="relative font-handwriting text-2xl md:text-3xl text-slate-900 dark:text-amber-100 tracking-wide leading-[2.25rem] pt-0.5 select-none bg-ruled-paper px-12 py-4 rounded-lg shadow-inner min-h-[180px] border border-amber-900/10">
+    <div ref={containerRef} className="relative font-handwriting text-2xl md:text-3xl text-slate-900 dark:text-amber-100 tracking-wide leading-[2.25rem] pt-0.5 select-none bg-ruled-paper px-12 py-4 rounded-lg shadow-inner min-h-[180px] border border-amber-900/10 overflow-hidden">
       {/* Red margin line indicator visual */}
       <div className="absolute top-0 bottom-0 left-11 w-[2px] bg-red-400/60 pointer-events-none" />
 
       <span className="whitespace-pre-wrap">{displayedText}</span>
+      <span ref={markerRef} className="inline-block w-0 h-6 opacity-0">|</span>
 
       {/* Floating 3D Pen Graphic attached to active cursor */}
       {currentIndex < safeText.length && (
-        <span className="inline-block relative -ml-3 -top-2 z-30 pointer-events-none" style={{ verticalAlign: 'baseline' }}>
-          <div className="absolute -top-36 -left-4 transform -rotate-[35deg]">
-            <FountainPenGraphic />
-          </div>
-        </span>
+        <div
+          className="absolute z-30 pointer-events-none transition-all duration-75 ease-out"
+          style={{
+            left: `${penPos.left - 10}px`,
+            top: `${penPos.top - 125}px`
+          }}
+        >
+          <FountainPenGraphic isWriting={true} />
+        </div>
       )}
     </div>
   );

@@ -8,7 +8,7 @@ import type { Mood } from '@/lib/mock-data';
 import { ArrowLeft, Save, Sparkles, Mic, Camera, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import { journalApi } from '@/lib/api/journal';
 import { toBackendMood } from '@/lib/mood-map';
 import { ApiError } from '@/lib/api-client';
@@ -32,9 +32,14 @@ const writingPrompts = [
   "Describe the most relaxing part of your week so far."
 ];
 
-function FountainPenGraphic() {
+function FountainPenGraphic({ isWriting = false }: { isWriting?: boolean }) {
   return (
-    <svg viewBox="0 0 120 400" className="w-14 h-44 drop-shadow-2xl animate-pen-glide filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.6)]">
+    <svg
+      viewBox="0 0 120 400"
+      className={`w-12 h-40 filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.6)] transition-transform duration-100 ${
+        isWriting ? 'animate-pen-glide scale-105' : ''
+      }`}
+    >
       <defs>
         <linearGradient id="goldCapNew" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor="#92400e" />
@@ -68,6 +73,92 @@ function FountainPenGraphic() {
       <line x1="60" y1="315" x2="60" y2="385" stroke="#451a03" strokeWidth="1.5" />
       <circle cx="60" cy="345" r="3.5" fill="#451a03" />
     </svg>
+  );
+}
+
+function RuledNotebookEditor({
+  content,
+  onChange,
+  placeholder,
+  disabled
+}: {
+  content: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+}) {
+  const [penPos, setPenPos] = useState({ left: 45, top: 15, isWriting: false });
+  const markerRef = useRef<HTMLSpanElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const typingTimerRef = useRef<any>(null);
+
+  const updatePenPosition = useCallback(() => {
+    if (markerRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const markerRect = markerRef.current.getBoundingClientRect();
+
+      const left = markerRect.left - containerRect.left;
+      const top = markerRect.top - containerRect.top;
+
+      setPenPos({
+        left: Math.max(35, left),
+        top: Math.max(10, top),
+        isWriting: true
+      });
+
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(() => {
+        setPenPos((prev) => ({ ...prev, isWriting: false }));
+      }, 700);
+    }
+  }, []);
+
+  useEffect(() => {
+    updatePenPosition();
+  }, [content, updatePenPosition]);
+
+  return (
+    <div ref={containerRef} className="relative bg-ruled-paper rounded-xl p-6 sm:p-8 shadow-inner border border-amber-950/20 min-h-[360px] overflow-hidden">
+      {/* Red Vertical Margin Line */}
+      <div className="absolute top-0 bottom-0 left-11 w-[2px] bg-red-400/60 pointer-events-none z-10" />
+
+      {/* Mirror Container for Calculating Caret Coordinates */}
+      <div
+        className="absolute top-6 sm:top-8 left-6 sm:left-8 right-6 sm:right-8 bottom-6 sm:bottom-8 pointer-events-none whitespace-pre-wrap break-words font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 opacity-0 z-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <span>{content}</span>
+        <span ref={markerRef} className="inline-block w-1 h-6 bg-red-500">
+          |
+        </span>
+      </div>
+
+      {/* Real Textarea */}
+      <textarea
+        placeholder={placeholder}
+        value={content}
+        onChange={(e) => {
+          onChange(e.target.value);
+          updatePenPosition();
+        }}
+        onKeyUp={updatePenPosition}
+        onClick={updatePenPosition}
+        className="relative z-10 w-full min-h-[300px] bg-transparent text-slate-900 dark:text-amber-100 placeholder:text-amber-900/40 dark:placeholder:text-amber-300/30 focus:outline-none font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 resize-none"
+        required
+        disabled={disabled}
+      />
+
+      {/* Real-time Fountain Pen Nib positioned EXACTLY at marker */}
+      <div
+        className={`absolute z-30 pointer-events-none transition-all duration-75 ease-out`}
+        style={{
+          left: `${penPos.left - 10}px`,
+          top: `${penPos.top - 125}px`
+        }}
+      >
+        <FountainPenGraphic isWriting={penPos.isWriting} />
+      </div>
+    </div>
   );
 }
 
@@ -453,26 +544,12 @@ export default function NewEntryPage() {
                 </div>
               </div>
 
-              {/* Ruled Notebook Paper Box */}
-              <div className="relative bg-ruled-paper rounded-xl p-6 sm:p-8 shadow-inner border border-amber-950/20 min-h-[360px]">
-                {/* Red Vertical Margin Line */}
-                <div className="absolute top-0 bottom-0 left-11 w-[2px] bg-red-400/60 pointer-events-none z-10" />
-
-                <textarea
-                  placeholder="Write your personal thoughts here... your fountain pen glides as you type on ruled paper!"
-                  value={content + interimText}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full min-h-[300px] bg-transparent text-slate-900 dark:text-amber-100 placeholder:text-amber-900/40 dark:placeholder:text-amber-300/30 focus:outline-none font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 resize-none"
-                  required
-                  disabled={isScanning}
-                />
-
-                {/* Floating 3D Golden Fountain Pen */}
-                {(content.length > 0 || isListening) && (
-                  <div className="absolute bottom-6 right-8 pointer-events-none z-30 transform -rotate-[35deg]">
-                    <FountainPenGraphic />
-                  </div>
-                )}
+              <RuledNotebookEditor
+                content={content + interimText}
+                onChange={(val) => setContent(val)}
+                placeholder="Write your personal thoughts here... your fountain pen glides as you type on ruled paper!"
+                disabled={isScanning}
+              />
 
                 {isScanning && (
                   <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg border border-border z-20 animate-in fade-in duration-300">
