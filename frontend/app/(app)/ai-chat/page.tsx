@@ -24,7 +24,8 @@ import {
   X,
   Menu,
   Compass,
-  ChevronRight
+  ChevronRight,
+  Brain
 } from 'lucide-react';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -43,7 +44,7 @@ const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Hi there ❤️\n\nI'm your AI wellness companion. I'm here to listen, support, and help you reflect on whatever is on your mind today. How are you holding up so far?",
+    "Hi there ❤️\n\nI'm your Wellness Coach. I'm here to listen, support, and help you reflect on whatever is on your mind today. How are you holding up so far?",
 };
 
 const promptSuggestions = [
@@ -88,6 +89,7 @@ export default function AIChatPage() {
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [error, setError] = useState('');
 
@@ -96,6 +98,8 @@ export default function AIChatPage() {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSanctuaryCollapsed, setIsSanctuaryCollapsed] = useState(false);
 
   // Clipboard copy feedback state
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -166,6 +170,7 @@ export default function AIChatPage() {
   const streamText = (fullText: string, messageId: string) => {
     let index = 0;
     const words = fullText.split(' ');
+    setIsSpeaking(true);
     
     // Initial blank bubble
     setMessages((prev) => [
@@ -176,6 +181,7 @@ export default function AIChatPage() {
     const interval = setInterval(() => {
       if (index >= words.length) {
         clearInterval(interval);
+        setIsSpeaking(false);
         // Reload session data silently in the background to fetch updated AI summary/tags/timeline
         loadSessions().then(() => {
           if (activeSession) {
@@ -204,6 +210,7 @@ export default function AIChatPage() {
     const userText = input.trim();
     setInput('');
     setError('');
+    setIsSpeaking(false);
 
     // Ensure session initialized
     let sessionId = activeSession?.id;
@@ -326,6 +333,7 @@ export default function AIChatPage() {
     if (!userMsg || !activeSession) return;
 
     setLoading(true);
+    setIsSpeaking(false);
     setError('');
 
     // Remove last assistant message
@@ -381,6 +389,7 @@ export default function AIChatPage() {
     if (!text.trim() || loading) return;
 
     setError('');
+    setIsSpeaking(false);
     let sessionId = activeSession?.id;
     if (!sessionId) {
       try {
@@ -407,11 +416,183 @@ export default function AIChatPage() {
     try {
       const { data } = await chatApi.sendMessage(sessionId, text);
       setLoading(false);
+      // Stream response word-by-word
       streamText(data.message.content, data.message.id);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'The AI companion is unavailable right now.');
       setLoading(false);
     }
+  };
+
+  // Render method for the Animated Wellness Coach Sanctuary
+  const renderCoachSanctuary = () => {
+    const coachState = loading ? 'thinking' : (isSpeaking ? 'speaking' : 'idle');
+
+    // We can extract the last assistant message content
+    const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
+    const speechBubbleText = 
+      coachState === 'speaking' 
+        ? (lastAssistantMsg ? lastAssistantMsg.content : 'Reflecting on your thoughts...')
+        : coachState === 'thinking'
+          ? 'Hmm... let me reflect on that...'
+          : 'I\'m here, listening. What is on your mind?';
+
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-between py-2 space-y-6 relative">
+        {/* Minimize Button in Sanctuary */}
+        <button
+          onClick={() => setIsSanctuaryCollapsed(true)}
+          className="absolute right-0 top-0 p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer hidden lg:flex"
+          title="Minimize Sanctuary"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="text-center space-y-1">
+          <h3 className="font-extrabold text-lg bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent flex items-center justify-center gap-2">
+            <Brain className="w-5 h-5 text-purple-400" />
+            Wellness Sanctuary
+          </h3>
+          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Your personal Wellness Coach</p>
+        </div>
+
+        {/* Zen Room / Sanctuary Scene */}
+        <div className="relative w-full h-[280px] rounded-3xl bg-gradient-to-b from-[#1b1e2e] via-[#24293f] to-[#121420] border border-border/55 shadow-inner overflow-hidden flex flex-col items-center justify-center">
+          {/* Ambient warm lamp light glow */}
+          <div className={`absolute -right-8 top-12 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-1000 ${
+            coachState === 'speaking' ? 'bg-amber-400 scale-125' : coachState === 'thinking' ? 'bg-amber-500 scale-110' : 'bg-amber-300 scale-100'
+          }`} />
+
+          {/* Warm background wall texture styling */}
+          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+
+          {/* Bookshelf on the left */}
+          <div className="absolute top-8 left-4 w-12 h-36 bg-amber-950/15 border-r border-amber-900/25 flex flex-col justify-between py-2 pointer-events-none opacity-60">
+            {/* Shelf 1 */}
+            <div className="border-b border-amber-800/20 w-full flex gap-0.5 items-end justify-center px-1">
+              <div className="w-1.5 h-6 bg-red-800/80 rounded-sm" />
+              <div className="w-1.5 h-7 bg-blue-800/80 rounded-sm transform rotate-6 origin-bottom" />
+              <div className="w-2 h-5 bg-emerald-800/80 rounded-sm" />
+            </div>
+            {/* Shelf 2 */}
+            <div className="border-b border-amber-800/20 w-full flex gap-0.5 items-end justify-center px-1">
+              <div className="w-2 h-7 bg-amber-800/70 rounded-sm" />
+              <div className="w-1.5 h-6 bg-indigo-800/80 rounded-sm" />
+              <div className="w-1.5 h-6 bg-teal-800/80 rounded-sm transform -rotate-12 origin-bottom" />
+            </div>
+            {/* Shelf 3 */}
+            <div className="w-full flex gap-0.5 items-end justify-center px-1">
+              <div className="w-1.5 h-5 bg-purple-800/80 rounded-sm" />
+              <div className="w-2 h-6 bg-rose-800/80 rounded-sm" />
+            </div>
+          </div>
+
+          {/* Floor Lamp on the right */}
+          <div className="absolute right-6 bottom-4 w-8 h-48 flex flex-col items-center pointer-events-none opacity-60">
+            <div className="w-8 h-6 bg-amber-100/90 rounded-t-lg shadow-md border-b border-amber-200" />
+            <div className="w-0.5 h-36 bg-amber-900/50" />
+            <div className="w-6 h-1.5 bg-amber-900/60 rounded-sm" />
+            <div className="absolute -top-6 w-24 h-24 rounded-full bg-amber-400/10 blur-xl animate-pulse" />
+          </div>
+
+          {/* Styled Potted Plant on left base */}
+          <div className="absolute left-16 bottom-4 w-10 h-16 pointer-events-none opacity-50">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-6 bg-stone-300 rounded-sm border border-stone-400" />
+            <div className="absolute -top-2 left-2 w-4 h-8 text-emerald-600 animate-plant-sway">
+              <svg viewBox="0 0 100 150" fill="currentColor">
+                <path d="M10,150 Q30,80 80,40 Q60,90 20,150 Z" />
+              </svg>
+            </div>
+            <div className="absolute -top-4 left-4 w-4 h-10 text-emerald-700 animate-plant-sway delay-500">
+              <svg viewBox="0 0 100 150" fill="currentColor" className="scale-x-[-1]">
+                <path d="M10,150 Q30,80 80,40 Q60,90 20,150 Z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Professional Coach Figure Sitting in Armchair */}
+          <div className={`relative w-36 h-36 flex flex-col items-center justify-end pb-4 transition-all duration-500 ${
+            coachState === 'speaking' ? 'animate-coach-speak-bob' : 'animate-coach-breathe'
+          }`}>
+            
+            {/* Coach SVG Avatar */}
+            <svg width="115" height="115" viewBox="0 0 100 100" className="drop-shadow-lg overflow-visible">
+              {/* Cozy armchair behind the coach */}
+              <path d="M 20 85 C 20 42, 80 42, 80 85 Z" fill="#9c6644" /> {/* Armchair back */}
+              <path d="M 18 85 C 18 70, 26 70, 26 85 Z" fill="#7f5539" /> {/* Left armrest */}
+              <path d="M 82 85 C 82 70, 74 70, 74 85 Z" fill="#7f5539" /> {/* Right armrest */}
+              
+              {/* Body (Professional Blazer Outfit) */}
+              <path d="M 30 85 C 30 65, 38 60, 50 60 C 62 60, 70 65, 70 85 Z" fill="#1e293b" /> {/* Dark slate blazer */}
+              <polygon points="44,60 56,60 50,75" fill="#f8fafc" /> {/* Clean white button shirt */}
+              <path d="M 49 68 L 50 82 L 51 68 Z" stroke="#3b82f6" strokeWidth="2" fill="none" /> {/* Neat blue tie */}
+
+              {/* Blazer Lapels */}
+              <path d="M 32 75 L 43 62 L 48 85 Z" fill="#0f172a" />
+              <path d="M 68 75 L 57 62 L 52 85 Z" fill="#0f172a" />
+
+              {/* Hands holding a professional notebook/clipboard */}
+              <rect x="36" y="80" width="28" height="10" rx="1.5" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="0.8" /> {/* Clipboard */}
+              <path d="M 33 83 C 33 80, 38 79, 41 81" stroke="#fbc4b6" strokeWidth="3.2" strokeLinecap="round" /> {/* Left hand fingers */}
+              <path d="M 67 83 C 67 80, 62 79, 59 81" stroke="#fbc4b6" strokeWidth="3.2" strokeLinecap="round" /> {/* Right hand fingers */}
+
+              {/* Neck */}
+              <rect x="46" y="52" width="8" height="10" rx="2" fill="#fbc4b6" />
+
+              {/* Head / Face */}
+              <circle cx="50" cy="42" r="12" fill="#fbc4b6" />
+
+              {/* Professional styled short neat dark hair */}
+              <path d="M 37 40 C 36 34, 40 32, 50 32 C 60 32, 64 34, 63 40 L 63 44 C 63 44, 61 40, 50 40 C 39 40, 37 44, 37 44 Z" fill="#1e1b4b" />
+
+              {/* Intellectual Professional Glasses */}
+              <circle cx="45" cy="42" r="3.2" stroke="#0f172a" strokeWidth="1" fill="none" />
+              <circle cx="55" cy="42" r="3.2" stroke="#0f172a" strokeWidth="1" fill="none" />
+              <line x1="48.2" y1="42" x2="51.8" y2="42" stroke="#0f172a" strokeWidth="1.2" /> {/* Glasses Bridge */}
+              <line x1="39" y1="41" x2="41.8" y2="41" stroke="#0f172a" strokeWidth="0.8" /> {/* Side frame */}
+              <line x1="58.2" y1="41" x2="61" y2="41" stroke="#0f172a" strokeWidth="0.8" /> {/* Side frame */}
+
+              {/* Eyes (Blinking or Thinking/Closed) */}
+              {coachState === 'thinking' ? (
+                <>
+                  {/* Closed reflecting eyes */}
+                  <path d="M 42 42 Q 45 44 47 42" stroke="#0f172a" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                  <path d="M 53 42 Q 56 44 58 42" stroke="#0f172a" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                </>
+              ) : (
+                <>
+                  {/* Open blinking eyes */}
+                  <g className="animate-coach-blink origin-[50px_42px]">
+                    <circle cx="45" cy="42" r="1.1" fill="#0f172a" />
+                    <circle cx="55" cy="42" r="1.1" fill="#0f172a" />
+                  </g>
+                </>
+              )}
+
+              {/* Eyebrows */}
+              <path d="M 41 37 Q 45 35 48 37" stroke="#0f172a" strokeWidth="0.8" fill="none" />
+              <path d="M 52 37 Q 55 35 59 37" stroke="#0f172a" strokeWidth="0.8" fill="none" />
+
+              {/* Mouth (Wiggling when speaking, gentle smile otherwise) */}
+              {coachState === 'speaking' ? (
+                <ellipse cx="50" cy="48" rx="2.5" ry="3" fill="#a4133c" className="animate-coach-speak-mouth origin-[50px_48px]" />
+              ) : (
+                <path d="M 46 47 Q 50 49.5 54 47" stroke="#0f172a" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              )}
+            </svg>
+          </div>
+        </div>
+
+        {/* Speech Bubble / Subtitles Container */}
+        <div className="w-full bg-card/65 border border-border/85 rounded-2xl p-4 shadow-sm relative min-h-[90px] flex items-center justify-center text-center">
+          {/* Speech bubble arrow pointer pointing up to the sanctuary */}
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card border-t border-l border-border/85 rotate-45" />
+          <p className="text-xs font-serif italic text-foreground leading-relaxed line-clamp-3 relative z-10">
+            &ldquo;{speechBubbleText}&rdquo;
+          </p>
+        </div>
+      </div>
+    );
   };
 
   const handleExportToJournal = () => {
@@ -440,6 +621,21 @@ export default function AIChatPage() {
 
   const renderSidebarContents = () => (
     <div className="flex flex-col flex-1 overflow-hidden h-full">
+      {/* Sidebar Header with Close Button for Desktop */}
+      <div className="flex items-center justify-between pb-2 mb-2 flex-shrink-0 border-b border-border/40">
+        <div className="flex items-center gap-2 pl-1">
+          <BookOpen className="w-4.5 h-4.5 text-primary" />
+          <span className="font-bold text-xs text-muted-foreground uppercase tracking-wider">Chat History</span>
+        </div>
+        <button
+          onClick={() => setIsSidebarCollapsed(true)}
+          className="hidden md:flex p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          title="Minimize Sidebar"
+        >
+          <X className="w-4.5 h-4.5" />
+        </button>
+      </div>
+
       <div className="flex flex-col space-y-4 flex-shrink-0">
         <Button
           onClick={() => {
@@ -632,7 +828,11 @@ export default function AIChatPage() {
   return (
     <div className="flex h-screen w-full relative overflow-hidden bg-background">
       {/* 1. Side History Sidebar (Desktop view) */}
-      <aside className="hidden md:flex w-80 border-r border-border bg-card/45 backdrop-blur-md flex-col justify-between h-full select-none p-4">
+      <aside 
+        className={`hidden md:flex border-r border-border bg-card/45 backdrop-blur-md flex-col justify-between h-full select-none transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'w-0 p-0 border-r-0 overflow-hidden' : 'w-80 p-4'
+        }`}
+      >
         {renderSidebarContents()}
       </aside>
 
@@ -677,16 +877,22 @@ export default function AIChatPage() {
               <Menu className="w-5 h-5" />
             </Button>
 
+            {/* Desktop History Sidebar Collapse Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="hidden md:flex h-8 w-8 text-muted-foreground cursor-pointer hover:bg-muted mr-1"
+              title={isSidebarCollapsed ? "Expand History" : "Minimize History"}
+            >
+              <Menu className="w-4.5 h-4.5" />
+            </Button>
+
             <MessageSquare className="w-5 h-5 text-primary flex-shrink-0" />
             <div className="min-w-0">
               <h2 className="text-sm font-bold text-foreground truncate">
                 {activeSession ? activeSession.title : 'New Wellness Conversation'}
               </h2>
-              {activeSession?.summary && (
-                <p className="text-[11px] text-muted-foreground truncate font-medium">
-                  📝 {activeSession.summary}
-                </p>
-              )}
             </div>
           </div>
 
@@ -731,59 +937,19 @@ export default function AIChatPage() {
                 </Button>
               </>
             )}
+
+            {/* Toggle Wellness Sanctuary Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSanctuaryCollapsed(!isSanctuaryCollapsed)}
+              className="hidden lg:flex h-8 w-8 text-muted-foreground cursor-pointer hover:bg-muted"
+              title={isSanctuaryCollapsed ? "Show Wellness Sanctuary" : "Minimize Wellness Sanctuary"}
+            >
+              <Brain className={`w-4.5 h-4.5 ${!isSanctuaryCollapsed ? 'text-primary' : ''}`} />
+            </Button>
           </div>
         </header>
-
-        {/* Wellness Dashboard Dropdown (Pin Chat Memory values) */}
-        {activeSession && (activeSession.summary || (activeSession.tags && activeSession.tags.length > 0) || (activeSession.moodTimeline && activeSession.moodTimeline.length > 0)) && (
-          <div className="bg-card/30 border-b border-border/40 px-6 py-3 flex flex-wrap gap-4 text-xs select-none">
-            {activeSession.summary && (
-              <div className="flex items-center gap-1.5 text-muted-foreground min-w-0 flex-1">
-                <BookOpen className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                <span className="truncate font-semibold"><strong className="text-foreground">Summary:</strong> {activeSession.summary}</span>
-              </div>
-            )}
-            
-            {activeSession.tags && activeSession.tags.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-secondary" />
-                <div className="flex gap-1.5">
-                  {activeSession.tags.map((t) => (
-                    <span key={t} className="text-[10px] bg-secondary/15 text-secondary px-2 py-0.5 rounded-sm font-bold">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeSession.moodTimeline && activeSession.moodTimeline.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-accent" />
-                <span className="font-bold text-[10px] text-muted-foreground mr-1 uppercase">Mood Flow:</span>
-                <div className="flex gap-1">
-                  {activeSession.moodTimeline.slice(-6).map((mood, idx) => {
-                    const moodColors: Record<string, string> = {
-                      excellent: 'bg-emerald-500',
-                      great: 'bg-green-500',
-                      good: 'bg-sky-500',
-                      okay: 'bg-amber-500',
-                      sad: 'bg-slate-500',
-                      anxious: 'bg-rose-500',
-                    };
-                    return (
-                      <div
-                        key={idx}
-                        className={`w-2.5 h-2.5 rounded-full ${moodColors[mood] || 'bg-muted'}`}
-                        title={mood}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Message Panel Box */}
         <div className="flex-1 overflow-y-auto px-4 md:px-6 py-8 space-y-6 relative">
@@ -810,7 +976,7 @@ export default function AIChatPage() {
                     >
                       {/* Role name */}
                       <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase opacity-60">
-                        <span>{isUser ? 'You' : 'AI Companion'}</span>
+                        <span>{isUser ? 'You' : 'Wellness Coach'}</span>
                         {!isUser && wordCount > 0 && <span>📝 {wordCount} words</span>}
                       </div>
 
@@ -849,6 +1015,11 @@ export default function AIChatPage() {
                   {/* If it's the welcome message and we have no user messages yet, show Interactive Mood Check-in and Quick Prompts */}
                   {msg.id === 'welcome' && messages.length === 1 && !loading && (
                     <div className="max-w-2xl mx-auto space-y-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      {/* Mobile Wellness Coach Sanctuary */}
+                      <div className="lg:hidden block bg-card/45 border border-border/80 rounded-2xl p-5 shadow-sm">
+                        {renderCoachSanctuary()}
+                      </div>
+
                       {/* Mood check-in */}
                       <div className="bg-card border border-border/85 rounded-2xl p-5 shadow-sm space-y-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Quick Mood Check-in</p>
@@ -947,6 +1118,15 @@ export default function AIChatPage() {
           </form>
         </footer>
       </main>
+
+      {/* 3. Wellness Coach Animated Avatar Sanctuary Panel (Desktop view) */}
+      <aside 
+        className={`hidden lg:flex border-l border-border bg-card/15 backdrop-blur-md flex-col items-center justify-between select-none h-full overflow-y-auto transition-all duration-300 ease-in-out ${
+          isSanctuaryCollapsed ? 'w-0 p-0 border-l-0 overflow-hidden' : 'w-96 p-6'
+        }`}
+      >
+        {renderCoachSanctuary()}
+      </aside>
     </div>
   );
 }
