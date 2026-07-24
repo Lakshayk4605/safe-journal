@@ -517,68 +517,86 @@ export default function AIChatPage() {
             
             {/* Coach SVG Avatar */}
             <svg width="115" height="115" viewBox="0 0 100 100" className="drop-shadow-lg overflow-visible">
-              {/* Cozy armchair behind the coach */}
-              <path d="M 20 85 C 20 42, 80 42, 80 85 Z" fill="#9c6644" /> {/* Armchair back */}
-              <path d="M 18 85 C 18 70, 26 70, 26 85 Z" fill="#7f5539" /> {/* Left armrest */}
-              <path d="M 82 85 C 82 70, 74 70, 74 85 Z" fill="#7f5539" /> {/* Right armrest */}
-              
-              {/* Body (Professional Blazer Outfit) */}
-              <path d="M 30 85 C 30 65, 38 60, 50 60 C 62 60, 70 65, 70 85 Z" fill="#1e293b" /> {/* Dark slate blazer */}
-              <polygon points="44,60 56,60 50,75" fill="#f8fafc" /> {/* Clean white button shirt */}
-              <path d="M 49 68 L 50 82 L 51 68 Z" stroke="#3b82f6" strokeWidth="2" fill="none" /> {/* Neat blue tie */}
+              {/* Sigmund Freud style Red Wing Armchair back */}
+              <path d="M 15 90 L 15 35 C 15 22, 23 15, 32 24 C 32 24, 50 18, 68 24 C 77 15, 85 22, 85 35 L 85 90 Z" fill="#7a0928" /> {/* Red back structure */}
+              <path d="M 22 90 L 22 40 C 22 32, 30 28, 50 28 C 70 28, 78 32, 78 40 L 78 90 Z" fill="#9e1039" /> {/* Inner cushion */}
+              <path d="M 12 90 C 12 72, 20 72, 20 90 Z" fill="#5c0d24" /> {/* Left armrest */}
+              <path d="M 88 90 C 88 72, 80 72, 80 90 Z" fill="#5c0d24" /> {/* Right armrest */}
 
-              {/* Blazer Lapels */}
-              <path d="M 32 75 L 43 62 L 48 85 Z" fill="#0f172a" />
-              <path d="M 68 75 L 57 62 L 52 85 Z" fill="#0f172a" />
+              {/* Body (Professional Brown Blazer Outfit with White Pocket Square) */}
+              <path d="M 28 90 C 28 66, 38 62, 50 62 C 62 62, 72 66, 72 90 Z" fill="#543d2b" /> {/* Brown suit jacket */}
+              <polygon points="44,62 56,62 50,78" fill="#ffffff" /> {/* Clean white button shirt */}
+              <polygon points="49,70 51,70 52,86 48,86" fill="#e63946" /> {/* Solid bright red tie */}
 
-              {/* Hands holding a professional notebook/clipboard */}
-              <rect x="36" y="80" width="28" height="10" rx="1.5" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="0.8" /> {/* Clipboard */}
-              <path d="M 33 83 C 33 80, 38 79, 41 81" stroke="#fbc4b6" strokeWidth="3.2" strokeLinecap="round" /> {/* Left hand fingers */}
-              <path d="M 67 83 C 67 80, 62 79, 59 81" stroke="#fbc4b6" strokeWidth="3.2" strokeLinecap="round" /> {/* Right hand fingers */}
+              {/* Blazer Black Lapels */}
+              <path d="M 30 76 L 43 63 L 48 90 Z" fill="#1c1917" />
+              <path d="M 70 76 L 57 63 L 52 90 Z" fill="#1c1917" />
+
+              {/* White Pocket Square */}
+              <polygon points="33,78 37,74 38,79" fill="#ffffff" />
 
               {/* Neck */}
-              <rect x="46" y="52" width="8" height="10" rx="2" fill="#fbc4b6" />
+              <rect x="46" y="52" width="8" height="12" rx="1" fill="#fae1dd" />
+              <polygon points="44,62 48,62 46,67" fill="#ffffff" /> {/* Collar left */}
+              <polygon points="56,62 52,62 54,67" fill="#ffffff" /> {/* Collar right */}
 
-              {/* Head / Face */}
-              <circle cx="50" cy="42" r="12" fill="#fbc4b6" />
+              {/* Face/Head */}
+              <circle cx="50" cy="42" r="11" fill="#fae1dd" />
 
-              {/* Professional styled short neat dark hair */}
-              <path d="M 37 40 C 36 34, 40 32, 50 32 C 60 32, 64 34, 63 40 L 63 44 C 63 44, 61 40, 50 40 C 39 40, 37 44, 37 44 Z" fill="#1e1b4b" />
+              {/* Slick back white hair */}
+              <path d="M 39 36 C 39 27, 42 26, 50 26 C 58 26, 61 27, 61 36 C 61 36, 50 33, 39 36 Z" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.5" />
+              <path d="M 39 36 L 39 42 L 41 40 Z" fill="#f1f5f9" /> {/* Sideburn left */}
+              <path d="M 61 36 L 61 42 L 59 40 Z" fill="#f1f5f9" /> {/* Sideburn right */}
 
-              {/* Intellectual Professional Glasses */}
-              <circle cx="45" cy="42" r="3.2" stroke="#0f172a" strokeWidth="1" fill="none" />
-              <circle cx="55" cy="42" r="3.2" stroke="#0f172a" strokeWidth="1" fill="none" />
-              <line x1="48.2" y1="42" x2="51.8" y2="42" stroke="#0f172a" strokeWidth="1.2" /> {/* Glasses Bridge */}
-              <line x1="39" y1="41" x2="41.8" y2="41" stroke="#0f172a" strokeWidth="0.8" /> {/* Side frame */}
-              <line x1="58.2" y1="41" x2="61" y2="41" stroke="#0f172a" strokeWidth="0.8" /> {/* Side frame */}
+              {/* White beard & mustache covering neck and chin */}
+              <path d="M 40 45 C 40 57, 50 63, 60 45 C 55 42, 45 42, 40 45 Z" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.5" /> {/* Main Beard */}
+              <path d="M 43 46 Q 50 49 57 46 Q 50 51 43 46 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.5" /> {/* Mustache */}
+
+              {/* Round Wire-rimmed Glasses */}
+              <circle cx="45.5" cy="40" r="3.2" stroke="#292524" strokeWidth="0.8" fill="none" />
+              <circle cx="54.5" cy="40" r="3.2" stroke="#292524" strokeWidth="0.8" fill="none" />
+              <line x1="48.7" y1="40" x2="51.3" y2="40" stroke="#292524" strokeWidth="1" />
+              <line x1="39" y1="39" x2="42.3" y2="39" stroke="#292524" strokeWidth="0.8" />
+              <line x1="57.7" y1="39" x2="61" y2="39" stroke="#292524" strokeWidth="0.8" />
 
               {/* Eyes (Blinking or Thinking/Closed) */}
               {coachState === 'thinking' ? (
                 <>
                   {/* Closed reflecting eyes */}
-                  <path d="M 42 42 Q 45 44 47 42" stroke="#0f172a" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-                  <path d="M 53 42 Q 56 44 58 42" stroke="#0f172a" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                  <path d="M 42.5 40.5 Q 45.5 42.5 48.5 40.5" stroke="#292524" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                  <path d="M 51.5 40.5 Q 54.5 42.5 57.5 40.5" stroke="#292524" strokeWidth="1.2" fill="none" strokeLinecap="round" />
                 </>
               ) : (
                 <>
                   {/* Open blinking eyes */}
-                  <g className="animate-coach-blink origin-[50px_42px]">
-                    <circle cx="45" cy="42" r="1.1" fill="#0f172a" />
-                    <circle cx="55" cy="42" r="1.1" fill="#0f172a" />
+                  <g className="animate-coach-blink origin-[50px_40px]">
+                    <circle cx="45.5" cy="40" r="1.1" fill="#292524" />
+                    <circle cx="54.5" cy="40" r="1.1" fill="#292524" />
                   </g>
                 </>
               )}
 
-              {/* Eyebrows */}
-              <path d="M 41 37 Q 45 35 48 37" stroke="#0f172a" strokeWidth="0.8" fill="none" />
-              <path d="M 52 37 Q 55 35 59 37" stroke="#0f172a" strokeWidth="0.8" fill="none" />
+              {/* Expressive eyebrows */}
+              <path d="M 41 35 Q 45 32 48 35" stroke="#292524" strokeWidth="1" fill="none" />
+              <path d="M 52 36 Q 55 35 59 35" stroke="#292524" strokeWidth="1" fill="none" />
 
               {/* Mouth (Wiggling when speaking, gentle smile otherwise) */}
               {coachState === 'speaking' ? (
-                <ellipse cx="50" cy="48" rx="2.5" ry="3" fill="#a4133c" className="animate-coach-speak-mouth origin-[50px_48px]" />
+                <ellipse cx="50" cy="48" rx="2" ry="2.5" fill="#a4133c" className="animate-coach-speak-mouth origin-[50px_48px]" />
               ) : (
-                <path d="M 46 47 Q 50 49.5 54 47" stroke="#0f172a" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                <path d="M 47 47 Q 50 49 53 47" stroke="#292524" strokeWidth="1" fill="none" strokeLinecap="round" />
               )}
+
+              {/* Left hand raised holding smoking pipe */}
+              <circle cx="25" cy="68" r="3.2" fill="#fae1dd" />
+              {/* Pipe Stem */}
+              <path d="M 24 67 C 22 58, 28 54, 46 51" stroke="#3e2723" strokeWidth="1" fill="none" strokeLinecap="round" />
+              {/* Pipe Bowl */}
+              <path d="M 22 70 C 19 70, 19 64, 22 64 Z" fill="#4e342e" />
+              <circle cx="21" cy="65" r="0.8" fill="#ff4d00" className="animate-pulse" /> {/* Glow embers */}
+
+              {/* Floating, rising smoke vector line with CSS drift */}
+              <path d="M 21 65 C 18 53, 25 41, 19 29 C 16 17, 24 11, 20 1" stroke="#f1f5f9" strokeWidth="1.2" fill="none" opacity="0.65" strokeLinecap="round" className="animate-smoke" />
             </svg>
           </div>
         </div>
