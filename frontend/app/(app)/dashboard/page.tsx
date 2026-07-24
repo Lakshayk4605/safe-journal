@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { MoodBadge } from '@/components/ui/mood-badge';
 import { inspirationalQuotes } from '@/lib/mock-data';
-import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote } from 'lucide-react';
+import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote, Heart, Bookmark, Edit3, Check, Plus, Trash2, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
@@ -11,6 +11,23 @@ import { journalApi } from '@/lib/api/journal';
 import { moodApi } from '@/lib/api/mood';
 import { fromBackendMood } from '@/lib/mood-map';
 import type { BackendJournalEntry, BackendMoodEntry } from '@/lib/api-types';
+
+interface StickyNote {
+  id: string;
+  title: string;
+  content: string;
+  color: string; // 'yellow' | 'pink' | 'blue' | 'green'
+  isFavorite: boolean;
+  isBookmarked: boolean;
+  createdAt: string;
+}
+
+const STICKY_COLORS = [
+  { name: 'Yellow', bg: 'bg-[#fef08a] border-[#fde047]', text: 'text-yellow-950', preview: '#fde047' },
+  { name: 'Pink', bg: 'bg-[#fbcfe8] border-[#f9a8d4]', text: 'text-pink-950', preview: '#f9a8d4' },
+  { name: 'Blue', bg: 'bg-[#bfdbfe] border-[#93c5fd]', text: 'text-blue-950', preview: '#93c5fd' },
+  { name: 'Green', bg: 'bg-[#bbf7d0] border-[#86efac]', text: 'text-green-950', preview: '#86efac' }
+];
 
 const writingPrompts = [
   "What is one thing that made you smile today?",
