@@ -78,29 +78,30 @@ const moodBadgeClasses: Record<Mood, string> = {
   anxious: 'bg-rose-500',
 };
 
-function HandwritingWriter({ text }: { text: string }) {
+function HandwritingWriter({ text = '' }: { text?: string }) {
+  const safeText = text || '';
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     setDisplayedText('');
     setCurrentIndex(0);
-  }, [text]);
+  }, [safeText]);
 
   useEffect(() => {
-    if (currentIndex < text.length) {
+    if (currentIndex < safeText.length) {
       const timer = setTimeout(() => {
-        setDisplayedText((prev) => prev + text[currentIndex]);
+        setDisplayedText((prev) => prev + safeText[currentIndex]);
         setCurrentIndex((prev) => prev + 1);
       }, 20);
       return () => clearTimeout(timer);
     }
-  }, [text, currentIndex]);
+  }, [safeText, currentIndex]);
 
   return (
     <div className="relative font-handwriting text-2xl text-foreground/95 tracking-wide leading-relaxed min-h-[40px] pt-1 select-none">
       {displayedText}
-      {currentIndex < text.length && (
+      {currentIndex < safeText.length && (
         <span className="inline-block animate-bounce ml-0.5 origin-bottom-right" style={{ verticalAlign: 'middle' }}>
           <svg
             viewBox="0 0 24 24"
@@ -612,7 +613,7 @@ export default function JournalPage() {
 
             // Compute word count sum for cell tooltip
             const totalWords = dayEntries.reduce((sum, entry) => {
-              return sum + entry.content.split(/\s+/).filter(Boolean).length;
+              return sum + (entry.content ? entry.content.split(/\s+/).filter(Boolean).length : 0);
             }, 0);
 
             // Fetch active streak for date
@@ -939,7 +940,7 @@ export default function JournalPage() {
               {selectedDayEntries.length > 0 ? (
                 selectedDayEntries.map((entry) => {
                   const mood = fromBackendMood(entry.mood);
-                  const wordCount = entry.content.split(/\s+/).filter(Boolean).length;
+                  const wordCount = entry.content ? entry.content.split(/\s+/).filter(Boolean).length : 0;
                   return (
                     <div
                       key={entry.id}
