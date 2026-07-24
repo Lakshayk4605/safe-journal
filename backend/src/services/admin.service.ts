@@ -102,6 +102,12 @@ export const adminService = {
   },
 
   async listAllEntries() {
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "gratitude_entries" ADD COLUMN IF NOT EXISTS "notes" TEXT;`);
+    } catch (e) {
+      console.error('Self-healing schema error:', e);
+    }
+
     const [journals, gratitudes, manifestations] = await Promise.all([
       prisma.journalEntry.findMany({
         where: { deletedAt: null },

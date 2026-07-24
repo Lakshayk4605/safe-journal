@@ -4,11 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { adminApi, AdminUserEntry } from '@/lib/api/admin';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
   Shield, 
   Lock, 
-  Search, 
   BookOpen, 
   Heart, 
   Sparkles, 
@@ -20,7 +18,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-// Simple mapping for mood colors & text
 const moodLabels: Record<string, string> = {
   EXCELLENT: 'Excellent',
   GREAT: 'Great',
@@ -39,7 +36,6 @@ const moodBgColors: Record<string, string> = {
   ANXIOUS: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
 };
 
-// Component for individual entry card with expansion capability
 function EntryCard({ entry }: { entry: AdminUserEntry }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const wordLimit = 40;
@@ -58,7 +54,6 @@ function EntryCard({ entry }: { entry: AdminUserEntry }) {
     minute: '2-digit',
   });
 
-  // Dynamic colors and icons based on type
   const typeConfig = {
     journal: {
       label: 'Journal',
@@ -83,7 +78,6 @@ function EntryCard({ entry }: { entry: AdminUserEntry }) {
 
   const TypeIcon = typeConfig.icon;
 
-  // Generate unique background color for user profile picture based on email
   const getAvatarColor = (email: string) => {
     const colors = [
       'bg-blue-500 text-white',
@@ -99,10 +93,8 @@ function EntryCard({ entry }: { entry: AdminUserEntry }) {
   };
 
   return (
-    <div className="group relative overflow-hidden bg-card/45 backdrop-blur-md hover:bg-card/60 border border-border/50 hover:border-primary/20 rounded-2xl p-6 transition-all duration-300 shadow-sm hover:shadow-md">
-      {/* Top Meta info */}
+    <div className="bg-card/45 backdrop-blur-md border border-border/50 rounded-2xl p-6 transition-all duration-300 shadow-sm hover:shadow-md">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-4 mb-4">
-        {/* User profile details */}
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm select-none shadow-sm ${getAvatarColor(entry.user.email)}`}>
             {entry.user.name.charAt(0).toUpperCase()}
@@ -113,22 +105,18 @@ function EntryCard({ entry }: { entry: AdminUserEntry }) {
           </div>
         </div>
 
-        {/* Badges/Tags */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Entry Type Badge */}
           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${typeConfig.bg}`}>
             <TypeIcon className="w-3.5 h-3.5" />
             {typeConfig.label}
           </span>
 
-          {/* Mood Badge (Journal Only) */}
           {entry.type === 'journal' && entry.mood && moodLabels[entry.mood] && (
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${moodBgColors[entry.mood] || 'bg-muted'}`}>
               {moodLabels[entry.mood]}
             </span>
           )}
 
-          {/* Date */}
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-accent/40 px-3 py-1 rounded-full border border-border/30">
             <Calendar className="w-3.5 h-3.5" />
             {dateStr}
@@ -136,7 +124,6 @@ function EntryCard({ entry }: { entry: AdminUserEntry }) {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="space-y-2">
         {entry.type === 'journal' && entry.title && (
           <h3 className="text-lg font-bold text-foreground tracking-tight">{entry.title}</h3>
@@ -172,10 +159,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Search & Filter state
-  const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'journal' | 'gratitude' | 'manifestation'>('all');
-
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       const fetchEntries = async () => {
@@ -195,7 +178,6 @@ export default function AdminPage() {
     }
   }, [user]);
 
-  // Auth Loading
   if (authLoading) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
@@ -204,7 +186,6 @@ export default function AdminPage() {
     );
   }
 
-  // Access check
   if (!user || user.role !== 'ADMIN') {
     return (
       <div className="min-h-[85vh] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
@@ -224,25 +205,6 @@ export default function AdminPage() {
     );
   }
 
-  // Statistics calculation
-  const totalCount = entries.length;
-  const journalCount = entries.filter((e) => e.type === 'journal').length;
-  const gratitudeCount = entries.filter((e) => e.type === 'gratitude').length;
-  const manifestationCount = entries.filter((e) => e.type === 'manifestation').length;
-
-  // Filter & Search logic
-  const filteredEntries = entries.filter((entry) => {
-    const matchesTab = activeTab === 'all' || entry.type === activeTab;
-    const searchLower = search.toLowerCase();
-    const matchesSearch = 
-      entry.user.name.toLowerCase().includes(searchLower) ||
-      entry.user.email.toLowerCase().includes(searchLower) ||
-      entry.content.toLowerCase().includes(searchLower) ||
-      entry.title?.toLowerCase().includes(searchLower);
-
-    return matchesTab && matchesSearch;
-  });
-
   return (
     <div className="w-full max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-8 animate-in fade-in duration-500">
       
@@ -252,69 +214,8 @@ export default function AdminPage() {
           <Shield className="w-8 h-8" />
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Admin Control Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Monitor and view user logs, gratitude posts, and manifestations across the platform.</p>
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Entries', value: totalCount, color: 'text-primary border-primary/10 bg-primary/5', icon: Shield },
-          { label: 'Journals', value: journalCount, color: 'text-violet-500 border-violet-500/10 bg-violet-500/5', icon: BookOpen },
-          { label: 'Gratitudes', value: gratitudeCount, color: 'text-rose-500 border-rose-500/10 bg-rose-500/5', icon: Heart },
-          { label: 'Manifestations', value: manifestationCount, color: 'text-amber-500 border-amber-500/10 bg-amber-500/5', icon: Sparkles },
-        ].map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div 
-              key={i} 
-              className={`flex items-center justify-between p-6 rounded-2xl border backdrop-blur-md shadow-sm transition-all duration-300 hover:scale-[1.02] ${stat.color}`}
-            >
-              <div className="space-y-1">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{stat.label}</span>
-                <p className="text-3xl font-extrabold leading-none">{stat.value}</p>
-              </div>
-              <Icon className="w-8 h-8 opacity-25" />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Controls Bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/30 backdrop-blur-sm border border-border/40 p-4 rounded-2xl shadow-sm">
-        
-        {/* Search */}
-        <div className="relative w-full md:max-w-xs">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search users or content..."
-            className="pl-10 h-11 bg-card/65 border-border/40 focus:border-primary/50 rounded-xl"
-          />
-        </div>
-
-        {/* Tab Filters */}
-        <div className="flex flex-wrap gap-1 bg-accent/40 border border-border/30 p-1.5 rounded-xl w-full md:w-auto">
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'journal', label: 'Journals' },
-            { id: 'gratitude', label: 'Gratitudes' },
-            { id: 'manifestation', label: 'Manifestations' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-card text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Admin Panel</h1>
+          <p className="text-sm text-muted-foreground">All user entries and logs submitted on the platform.</p>
         </div>
       </div>
 
@@ -329,14 +230,13 @@ export default function AdminPage() {
           <p className="text-sm text-destructive font-semibold mb-2">Error Occurred</p>
           <p className="text-xs text-muted-foreground">{error}</p>
         </div>
-      ) : filteredEntries.length === 0 ? (
+      ) : entries.length === 0 ? (
         <div className="py-20 text-center bg-card/25 backdrop-blur-md border border-border/30 rounded-2xl">
           <p className="text-base font-bold text-foreground">No entries found</p>
-          <p className="text-sm text-muted-foreground mt-1">Try tweaking your search term or select a different filter.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredEntries.map((entry) => (
+          {entries.map((entry) => (
             <EntryCard key={entry.id} entry={entry} />
           ))}
         </div>

