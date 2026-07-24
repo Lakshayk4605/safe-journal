@@ -568,6 +568,7 @@ export default function NewEntryPage() {
                           style={{ width: `${scanProgress}%` }}
                         />
                       </div>
+                    </div>
                   </div>
                 )}
               </div>
