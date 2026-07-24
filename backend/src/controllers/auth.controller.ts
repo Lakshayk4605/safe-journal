@@ -5,6 +5,8 @@ import { sendSuccess } from '../utils/apiResponse';
 import { COOKIE_NAMES } from '../constants';
 import { env, isProduction } from '../config/env';
 import { ApiError } from '../utils/apiError';
+import { prisma } from '../config/prisma';
+import bcrypt from 'bcryptjs';
 
 const accessCookieOptions = {
   httpOnly: true,
@@ -94,5 +96,39 @@ export const authController = {
   me: asyncHandler(async (req, res) => {
     if (!req.user) throw ApiError.unauthorized();
     sendSuccess(res, 200, 'Current session', { user: req.user });
+  }),
+
+  tempSeed: asyncHandler(async (_req, res) => {
+    const adminPasswordHash = await bcrypt.hash('AdminPass123', 12);
+    const admin = await prisma.user.upsert({
+      where: { email: 'admin@safejournal.app' },
+      update: {},
+      create: {
+        name: 'Safe Journal Admin',
+        email: 'admin@safejournal.app',
+        passwordHash: adminPasswordHash,
+        role: 'ADMIN',
+        isEmailVerified: true,
+        preferences: { create: {} },
+      },
+    });
+
+    const demoPasswordHash = await bcrypt.hash('DemoPass123', 12);
+    const demoUser = await prisma.user.upsert({
+      where: { email: 'alex.chen@example.com' },
+      update: {},
+      create: {
+        name: 'Alex Chen',
+        email: 'alex.chen@example.com',
+        passwordHash: demoPasswordHash,
+        role: 'USER',
+        isEmailVerified: true,
+        streakDays: 12,
+        totalEntries: 0,
+        preferences: { create: {} },
+      },
+    });
+
+    sendSuccess(res, 200, 'Database seeded successfully', { adminId: admin.id, demoUserId: demoUser.id });
   }),
 };
