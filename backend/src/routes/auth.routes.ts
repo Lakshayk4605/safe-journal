@@ -39,6 +39,5 @@ router.post('/forgot-password', passwordResetRateLimiter, validate(forgotPasswor
 router.post('/reset-password', passwordResetRateLimiter, validate(resetPasswordSchema), authController.resetPassword);
 router.post('/change-password', requireAuth, validate(changePasswordSchema), authController.changePassword);
 router.get('/me', requireAuth, authController.me);
-router.get('/temp-seed', authController.tempSeed);
 
 export default router;
