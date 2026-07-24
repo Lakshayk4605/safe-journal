@@ -33,4 +33,7 @@ router.put('/feature-flags', validate(upsertFeatureFlagSchema), adminController.
 router.get('/announcements', adminController.listAnnouncements);
 router.post('/announcements', validate(createAnnouncementSchema), adminController.createAnnouncement);
 
+router.get('/entries', adminController.listAllEntries);
+
 export default router;
+

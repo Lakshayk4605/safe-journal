@@ -100,4 +100,58 @@ export const adminService = {
       data: { ...data, publishedAt: data.isPublished ? new Date() : null },
     });
   },
+
+  async listAllEntries() {
+    const [journals, gratitudes, manifestations] = await Promise.all([
+      prisma.journalEntry.findMany({
+        where: { deletedAt: null },
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.gratitudeEntry.findMany({
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.manifestationEntry.findMany({
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const unified: any[] = [
+      ...journals.map((j) => ({
+        id: j.id,
+        userId: j.userId,
+        user: j.user,
+        type: 'journal',
+        title: j.title || 'Journal Entry',
+        content: j.content,
+        mood: j.mood,
+        createdAt: j.createdAt,
+      })),
+      ...gratitudes.map((g) => ({
+        id: g.id,
+        userId: g.userId,
+        user: g.user,
+        type: 'gratitude',
+        title: 'Gratitude Entry',
+        content: `1. ${g.item1}\n2. ${g.item2}\n3. ${g.item3}${g.notes ? `\n\nNotes: ${g.notes}` : ''}`,
+        createdAt: g.createdAt,
+      })),
+      ...manifestations.map((m) => ({
+        id: m.id,
+        userId: m.userId,
+        user: m.user,
+        type: 'manifestation',
+        title: 'Manifestation Entry',
+        content: `Intention: ${m.intention}\nAffirmation: ${m.affirmation}${m.visualized ? '\n(Visualized)' : ''}`,
+        createdAt: m.createdAt,
+      })),
+    ];
+
+    unified.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return unified;
+  },
 };
+
