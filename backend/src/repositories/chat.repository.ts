@@ -3,12 +3,18 @@ import { prisma } from '../config/prisma';
 
 export const chatRepository = {
   createSession(userId: string, title?: string) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Unauthorized access: Invalid User ID');
+    }
     return prisma.chatSession.create({
       data: { userId, title: title ?? 'New conversation' },
     });
   },
 
   findSession(id: string, userId: string) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Unauthorized access: Invalid User ID');
+    }
     return prisma.chatSession.findFirst({
       where: { id, userId },
       include: { messages: { orderBy: { createdAt: 'asc' } } },
@@ -16,6 +22,9 @@ export const chatRepository = {
   },
 
   listSessions(userId: string, page: number, limit: number) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Unauthorized access: Invalid User ID');
+    }
     return Promise.all([
       prisma.chatSession.findMany({
         where: { userId, archivedAt: null },
@@ -38,12 +47,18 @@ export const chatRepository = {
   },
 
   archiveSession(id: string, userId: string) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Unauthorized access: Invalid User ID');
+    }
     return prisma.chatSession.updateMany({
       where: { id, userId },
       data: { archivedAt: new Date() },
     });
   },
   deleteSession(id: string, userId: string) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Unauthorized access: Invalid User ID');
+    }
     return prisma.chatSession.deleteMany({
       where: { id, userId },
     });
