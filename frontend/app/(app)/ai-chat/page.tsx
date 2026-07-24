@@ -960,9 +960,17 @@ export default function AIChatPage() {
               </span>
             </div>
           ) : (
-            messages.map((msg, index) => {
-              const isUser = msg.role === 'user';
-              const wordCount = msg.content.split(/\s+/).filter(Boolean).length;
+            <>
+              {/* Mobile/Tablet Wellness Coach Sanctuary (Only shown at start of chat, above welcome message) */}
+              {messages.length === 1 && (
+                <div className="lg:hidden block bg-card/45 border border-border/80 rounded-2xl p-5 shadow-sm max-w-2xl mx-auto mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                  {renderCoachSanctuary()}
+                </div>
+              )}
+
+              {messages.map((msg, index) => {
+                const isUser = msg.role === 'user';
+                const wordCount = msg.content.split(/\s+/).filter(Boolean).length;
 
               return (
                 <div key={msg.id} className="space-y-6">
@@ -1015,11 +1023,6 @@ export default function AIChatPage() {
                   {/* If it's the welcome message and we have no user messages yet, show Interactive Mood Check-in and Quick Prompts */}
                   {msg.id === 'welcome' && messages.length === 1 && !loading && (
                     <div className="max-w-2xl mx-auto space-y-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      {/* Mobile Wellness Coach Sanctuary */}
-                      <div className="lg:hidden block bg-card/45 border border-border/80 rounded-2xl p-5 shadow-sm">
-                        {renderCoachSanctuary()}
-                      </div>
-
                       {/* Mood check-in */}
                       <div className="bg-card border border-border/85 rounded-2xl p-5 shadow-sm space-y-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Quick Mood Check-in</p>
@@ -1071,7 +1074,9 @@ export default function AIChatPage() {
                 </div>
               );
             })
-          )}
+          }
+        </>
+      )}
           {loading && (
             <div className="flex justify-start w-full">
               <div className="bg-card border border-border/80 px-5 py-4 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-3">
