@@ -19,6 +19,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, user, router]);
 
+  // Daily reminder background timer check
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    const checkReminder = () => {
+      const savedTime = localStorage.getItem('daily_reminder_time');
+      if (!savedTime) return;
+
+      const [targetHours, targetMinutes] = savedTime.split(':').map(Number);
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+
+      // Check if current hour and minute matches target
+      if (currentHours === targetHours && currentMinutes === targetMinutes) {
+        const todayStr = now.toDateString();
+        const lastSentDate = localStorage.getItem('daily_reminder_last_sent');
+
+        if (lastSentDate !== todayStr) {
+          new Notification("Daily Sanctuary Reminder 🧘", {
+            body: "It's time for your daily reflection and mindfulness check-in.",
+            icon: "/icon-192x192.png"
+          });
+          localStorage.setItem('daily_reminder_last_sent', todayStr);
+        }
+      }
+    };
+
+    // Check immediately and then every 30 seconds
+    checkReminder();
+    const interval = setInterval(checkReminder, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedPasscode = localStorage.getItem('app_lock_passcode');

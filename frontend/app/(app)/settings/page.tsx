@@ -142,6 +142,48 @@ export default function SettingsPage() {
     }
   }, []);
 
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
+  const [reminderTime, setReminderTime] = useState<string>('20:00');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+      const savedTime = localStorage.getItem('daily_reminder_time') || '20:00';
+      setReminderTime(savedTime);
+    }
+  }, []);
+
+  const handleRequestPermission = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        new Notification("Notifications Enabled! ✨", {
+          body: "You'll now receive daily reminders to write in your Safe Journal.",
+          icon: "/icon-192x192.png"
+        });
+      }
+    }
+  };
+
+  const handleSendTestNotification = () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification("Safe Journal Check-in", {
+        body: "Take a deep breath. How are you feeling right now? Record your thoughts.",
+        icon: "/icon-192x192.png"
+      });
+    } else {
+      alert("Please enable notification permissions first!");
+    }
+  };
+
+  const handleSaveReminderTime = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('daily_reminder_time', reminderTime);
+      alert(`Daily reminder scheduled for ${reminderTime} successfully!`);
+    }
+  };
+
   const handleTogglePasscodeEnabled = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     setPasscodeEnabled(checked);
@@ -568,23 +610,80 @@ export default function SettingsPage() {
           </div>
 
           {/* Notifications */}
-          <div className="space-y-3 border-t border-border pt-6">
+          <div className="space-y-4 border-t border-border pt-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <label className="font-medium flex items-center gap-2">
                   <Bell className="w-4 h-4 text-primary" />
-                  Notifications
+                  Email Notifications
                 </label>
-                <p className="text-sm text-muted-foreground">Get reminders to journal and mood check-ins</p>
+                <p className="text-sm text-muted-foreground">Get reminders to journal and mood check-ins via email</p>
               </div>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={notifications}
                   onChange={(e) => handleNotificationsChange(e.target.checked)}
-                  className="w-4 h-4"
+                  className="w-4 h-4 cursor-pointer"
                 />
               </label>
+            </div>
+
+            {/* Browser Push Notifications */}
+            <div className="space-y-3 border-t border-border/40 pt-4">
+              <div className="space-y-1">
+                <label className="font-semibold text-sm flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-accent" />
+                  Browser Push Notifications
+                </label>
+                <p className="text-xs text-muted-foreground">Receive instant desktop reminders on your device</p>
+              </div>
+
+              {notificationPermission === 'default' && (
+                <Button onClick={handleRequestPermission} size="sm" className="bg-accent hover:bg-accent/90 text-white font-bold cursor-pointer">
+                  Request Browser Permission
+                </Button>
+              )}
+
+              {notificationPermission === 'denied' && (
+                <p className="text-xs text-destructive font-semibold">
+                  ⚠️ Notification permission denied. Please reset permissions in your browser settings to enable reminders.
+                </p>
+              )}
+
+              {notificationPermission === 'granted' && (
+                <div className="space-y-4 pt-1 animate-in fade-in duration-300">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
+                    <span className="text-xs text-emerald-500 font-bold">Permissions Active</span>
+                  </div>
+
+                  {/* Once/Test Notification */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground">Test Notification (Once)</p>
+                    <Button onClick={handleSendTestNotification} size="sm" variant="outline" className="text-xs font-semibold cursor-pointer">
+                      Send Test Notification (Once)
+                    </Button>
+                  </div>
+
+                  {/* Daily Reminder */}
+                  <div className="space-y-2 pt-2 border-t border-border/30">
+                    <p className="text-xs font-semibold text-muted-foreground">Daily Reminder Notification</p>
+                    <div className="flex gap-2 max-w-xs">
+                      <Input
+                        type="time"
+                        value={reminderTime}
+                        onChange={(e) => setReminderTime(e.target.value)}
+                        className="text-center font-bold text-sm h-9 bg-card text-foreground"
+                      />
+                      <Button onClick={handleSaveReminderTime} size="sm" className="bg-primary hover:bg-primary/95 text-white font-bold cursor-pointer h-9">
+                        Save Time
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Configure the time to trigger your daily reminder</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

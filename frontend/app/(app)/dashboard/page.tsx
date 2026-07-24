@@ -55,6 +55,16 @@ export default function DashboardPage() {
   }>>([]);
   const [greeting, setGreeting] = useState('Welcome back');
 
+  // Sticky Notes States
+  const [stickyNotes, setStickyNotes] = useState<StickyNote[]>([]);
+  const [noteFilter, setNoteFilter] = useState<'all' | 'favorites'>('all');
+  
+  // Note editing state
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteContent, setNoteContent] = useState('');
+  const [noteColor, setNoteColor] = useState('yellow');
+
   const quote = useMemo(
     () => inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)],
     [],
@@ -156,6 +166,102 @@ export default function DashboardPage() {
       // Degrade silently
     }
   };
+
+  // Load sticky notes from local storage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dashboard_sticky_notes');
+      if (saved) {
+        setStickyNotes(JSON.parse(saved));
+      } else {
+        const defaultNotes: StickyNote[] = [
+          {
+            id: '1',
+            title: 'Mindful Reminder 🧘',
+            content: 'Take 3 deep breaths before starting work. Smile!',
+            color: 'yellow',
+            isFavorite: true,
+            isBookmarked: true,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: '2',
+            title: 'Weekly Manifestation 💫',
+            content: 'I am capable of achieving all my goals with calmness and focus.',
+            color: 'blue',
+            isFavorite: false,
+            isBookmarked: true,
+            createdAt: new Date().toISOString()
+          }
+        ];
+        setStickyNotes(defaultNotes);
+        localStorage.setItem('dashboard_sticky_notes', JSON.stringify(defaultNotes));
+      }
+    }
+  }, []);
+
+  const saveNotes = (updated: StickyNote[]) => {
+    setStickyNotes(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dashboard_sticky_notes', JSON.stringify(updated));
+    }
+  };
+
+  const handleAddNote = () => {
+    const newNote: StickyNote = {
+      id: String(Date.now()),
+      title: 'New Note',
+      content: 'Write something here...',
+      color: 'yellow',
+      isFavorite: false,
+      isBookmarked: false,
+      createdAt: new Date().toISOString()
+    };
+    const updated = [newNote, ...stickyNotes];
+    saveNotes(updated);
+    
+    // Auto start editing the new note
+    setEditingNoteId(newNote.id);
+    setNoteTitle(newNote.title);
+    setNoteContent(newNote.content);
+    setNoteColor(newNote.color);
+  };
+
+  const handleUpdateNote = (id: string) => {
+    const updated = stickyNotes.map((n) =>
+      n.id === id ? { ...n, title: noteTitle, content: noteContent, color: noteColor } : n
+    );
+    saveNotes(updated);
+    setEditingNoteId(null);
+  };
+
+  const handleDeleteNote = (id: string) => {
+    if (confirm('Delete this sticky note?')) {
+      const updated = stickyNotes.filter((n) => n.id !== id);
+      saveNotes(updated);
+    }
+  };
+
+  const handleToggleFavoriteNote = (id: string) => {
+    const updated = stickyNotes.map((n) =>
+      n.id === id ? { ...n, isFavorite: !n.isFavorite } : n
+    );
+    saveNotes(updated);
+  };
+
+  const handleToggleBookmarkNote = (id: string) => {
+    const updated = stickyNotes.map((n) =>
+      n.id === id ? { ...n, isBookmarked: !n.isBookmarked } : n
+    );
+    saveNotes(updated);
+  };
+
+  const filteredNotes = useMemo(() => {
+    if (noteFilter === 'favorites') {
+      return stickyNotes.filter(n => n.isFavorite || n.isBookmarked);
+    }
+    return stickyNotes;
+  }, [stickyNotes, noteFilter]);
 
   if (!mounted || !user) return null;
 
@@ -364,8 +470,184 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
               </div>
-            </>
           )}
+
+          {/* Sticky Notes & Favorites Board */}
+          <div className="space-y-4 pt-6 border-t border-border/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <Quote className="w-5 h-5 text-primary rotate-180" />
+                  Sticky Notes Board
+                </h2>
+                <p className="text-xs text-muted-foreground">Pin quick thoughts, affirmations, or bookmark manifestations</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Filters */}
+                <div className="flex bg-muted/65 p-1 rounded-lg border border-border/40 text-xs">
+                  <button
+                    onClick={() => setNoteFilter('all')}
+                    className={`px-3 py-1 rounded-md font-bold transition-all cursor-pointer ${
+                      noteFilter === 'all'
+                        ? 'bg-card text-foreground shadow-sm border border-border/20'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    All Notes
+                  </button>
+                  <button
+                    onClick={() => setNoteFilter('favorites')}
+                    className={`px-3 py-1 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      noteFilter === 'favorites'
+                        ? 'bg-card text-foreground shadow-sm border border-border/20'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
+                    Bookmarked / Favorites
+                  </button>
+                </div>
+
+                <Button
+                  onClick={handleAddNote}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/95 text-white gap-1 text-xs font-semibold cursor-pointer h-8 px-3"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Note
+                </Button>
+              </div>
+            </div>
+
+            {filteredNotes.length === 0 ? (
+              <div className="py-10 text-center bg-card/40 border border-dashed border-border/60 rounded-2xl">
+                <p className="text-sm font-semibold text-muted-foreground">No sticky notes found.</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">Click &quot;Add Note&quot; to pin a reminder!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredNotes.map((note) => {
+                  const colorConfig = STICKY_COLORS.find(c => c.name.toLowerCase() === note.color.toLowerCase()) || STICKY_COLORS[0];
+                  const isEditing = editingNoteId === note.id;
+
+                  return (
+                    <div
+                      key={note.id}
+                      className={`relative flex flex-col justify-between p-5 rounded-2xl border-l-[6px] border-l-current border shadow-sm hover:shadow-md transition-all duration-300 ${colorConfig.bg} ${colorConfig.text} overflow-hidden`}
+                    >
+                      {/* Top Action Bar */}
+                      <div className="flex items-center justify-between mb-3 border-b border-black/5 pb-2">
+                        {isEditing ? (
+                          <div className="flex gap-1.5">
+                            {STICKY_COLORS.map((c) => (
+                              <button
+                                key={c.name}
+                                onClick={() => setNoteColor(c.name.toLowerCase())}
+                                className={`w-4 h-4 rounded-full border border-black/20 ${noteColor === c.name.toLowerCase() ? 'ring-2 ring-black/40 scale-110' : ''}`}
+                                style={{ backgroundColor: c.preview }}
+                                title={c.name}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[9px] uppercase font-bold opacity-60 tracking-wider">
+                            Pinned on {new Date(note.createdAt).toLocaleDateString()}
+                          </span>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          {/* Favorite / Bookmark Toggle Buttons */}
+                          <button
+                            onClick={() => handleToggleFavoriteNote(note.id)}
+                            className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer"
+                            title="Toggle Favorite"
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${note.isFavorite ? 'fill-current text-rose-600' : 'opacity-65 hover:opacity-100'}`} />
+                          </button>
+                          <button
+                            onClick={() => handleToggleBookmarkNote(note.id)}
+                            className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer"
+                            title="Toggle Bookmark"
+                          >
+                            <Bookmark className={`w-3.5 h-3.5 ${note.isBookmarked ? 'fill-current text-amber-600' : 'opacity-65 hover:opacity-100'}`} />
+                          </button>
+                          
+                          {!isEditing && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setEditingNoteId(note.id);
+                                  setNoteTitle(note.title);
+                                  setNoteContent(note.content);
+                                  setNoteColor(note.color);
+                                }}
+                                className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer opacity-60 hover:opacity-100"
+                                title="Edit"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteNote(note.id)}
+                                className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer text-red-950 opacity-60 hover:opacity-100"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content Card Body */}
+                      <div className="flex-1 space-y-1">
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <input
+                              value={noteTitle}
+                              onChange={(e) => setNoteTitle(e.target.value)}
+                              className="w-full bg-white/40 border border-black/10 rounded px-2 py-1 text-xs font-bold focus:outline-none focus:bg-white/60"
+                              placeholder="Note Title"
+                            />
+                            <textarea
+                              value={noteContent}
+                              onChange={(e) => setNoteContent(e.target.value)}
+                              rows={3}
+                              className="w-full bg-white/40 border border-black/10 rounded px-2 py-1 text-xs focus:outline-none focus:bg-white/60 resize-none"
+                              placeholder="Note details..."
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <h4 className="font-extrabold text-xs tracking-tight">{note.title}</h4>
+                            <p className="text-xs font-medium leading-relaxed opacity-95 whitespace-pre-wrap">{note.content}</p>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Editing confirmation toolbar */}
+                      {isEditing && (
+                        <div className="flex justify-end gap-1.5 mt-3 pt-2 border-t border-black/5">
+                          <button
+                            onClick={() => setEditingNoteId(null)}
+                            className="p-1 px-2 bg-black/5 hover:bg-black/10 rounded text-[9px] font-bold transition-all cursor-pointer text-current"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleUpdateNote(note.id)}
+                            className="p-1 px-2.5 bg-black/80 hover:bg-black/90 text-white rounded text-[9px] font-bold transition-all cursor-pointer flex items-center gap-0.5"
+                          >
+                            <Check className="w-3 h-3" /> Save
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column - Stats */}
