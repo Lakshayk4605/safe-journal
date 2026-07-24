@@ -570,6 +570,7 @@ export default function NewEntryPage() {
                       </div>
                   </div>
                 )}
+              </div>
 
             {/* Emotions */}
             <div className="space-y-3">
