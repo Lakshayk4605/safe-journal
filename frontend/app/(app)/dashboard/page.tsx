@@ -470,6 +470,7 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
               </div>
+            </>
           )}
 
           {/* Sticky Notes & Favorites Board */}
