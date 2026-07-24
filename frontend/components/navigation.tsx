@@ -43,16 +43,6 @@ export function Navigation() {
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 
-  const desktopItems = [...navItems];
-  if (user?.role === 'ADMIN') {
-    desktopItems.push({ icon: Shield, label: 'Admin Panel', href: '/admin' });
-  }
-
-  const moreItems = [...mobileMoreItems];
-  if (user?.role === 'ADMIN') {
-    moreItems.push({ icon: Shield, label: 'Admin Panel', href: '/admin' });
-  }
-
   return (
     <>
       {/* Desktop Sidebar Navigation */}
@@ -153,7 +143,7 @@ export function Navigation() {
 
             {/* Nav Items */}
             <nav className="px-4 py-6 space-y-2 overflow-y-auto">
-              {desktopItems.map((item) => {
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
@@ -260,7 +250,7 @@ export function Navigation() {
 
             {/* Links list */}
             <div className="grid grid-cols-2 gap-4">
-              {moreItems.map((item) => {
+              {mobileMoreItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
 
