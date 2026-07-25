@@ -424,194 +424,7 @@ export default function AIChatPage() {
     }
   };
 
-  // Render method for the Animated Wellness Coach Sanctuary
-  const renderCoachSanctuary = () => {
-    const coachState = loading ? 'thinking' : (isSpeaking ? 'speaking' : 'idle');
 
-    // We can extract the last assistant message content
-    const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
-    const speechBubbleText = 
-      coachState === 'speaking' 
-        ? (lastAssistantMsg ? lastAssistantMsg.content : 'Reflecting on your thoughts...')
-        : coachState === 'thinking'
-          ? 'Hmm... let me reflect on that...'
-          : 'I\'m here, listening. What is on your mind?';
-
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-between py-2 space-y-6 relative">
-        {/* Minimize Button in Sanctuary */}
-        <button
-          onClick={() => setIsSanctuaryCollapsed(true)}
-          className="absolute right-0 top-0 p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer hidden lg:flex"
-          title="Minimize Sanctuary"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="text-center space-y-1">
-          <h3 className="font-extrabold text-lg bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent flex items-center justify-center gap-2">
-            <Brain className="w-5 h-5 text-purple-400" />
-            Wellness Sanctuary
-          </h3>
-          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Your personal Wellness Coach</p>
-        </div>
-
-        {/* Zen Room / Sanctuary Scene */}
-        <div className="relative w-full h-[280px] rounded-3xl bg-gradient-to-b from-[#1b1e2e] via-[#24293f] to-[#121420] border border-border/55 shadow-inner overflow-hidden flex flex-col items-center justify-center">
-          {/* Ambient warm lamp light glow */}
-          <div className={`absolute -right-8 top-12 w-48 h-48 rounded-full blur-3xl opacity-20 transition-all duration-1000 ${
-            coachState === 'speaking' ? 'bg-amber-400 scale-125' : coachState === 'thinking' ? 'bg-amber-500 scale-110' : 'bg-amber-300 scale-100'
-          }`} />
-
-          {/* Warm background wall texture styling */}
-          <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-
-          {/* Bookshelf on the left */}
-          <div className="absolute top-8 left-4 w-12 h-36 bg-amber-950/15 border-r border-amber-900/25 flex flex-col justify-between py-2 pointer-events-none opacity-60">
-            {/* Shelf 1 */}
-            <div className="border-b border-amber-800/20 w-full flex gap-0.5 items-end justify-center px-1">
-              <div className="w-1.5 h-6 bg-red-800/80 rounded-sm" />
-              <div className="w-1.5 h-7 bg-blue-800/80 rounded-sm transform rotate-6 origin-bottom" />
-              <div className="w-2 h-5 bg-emerald-800/80 rounded-sm" />
-            </div>
-            {/* Shelf 2 */}
-            <div className="border-b border-amber-800/20 w-full flex gap-0.5 items-end justify-center px-1">
-              <div className="w-2 h-7 bg-amber-800/70 rounded-sm" />
-              <div className="w-1.5 h-6 bg-indigo-800/80 rounded-sm" />
-              <div className="w-1.5 h-6 bg-teal-800/80 rounded-sm transform -rotate-12 origin-bottom" />
-            </div>
-            {/* Shelf 3 */}
-            <div className="w-full flex gap-0.5 items-end justify-center px-1">
-              <div className="w-1.5 h-5 bg-purple-800/80 rounded-sm" />
-              <div className="w-2 h-6 bg-rose-800/80 rounded-sm" />
-            </div>
-          </div>
-
-          {/* Floor Lamp on the right */}
-          <div className="absolute right-6 bottom-4 w-8 h-48 flex flex-col items-center pointer-events-none opacity-60">
-            <div className="w-8 h-6 bg-amber-100/90 rounded-t-lg shadow-md border-b border-amber-200" />
-            <div className="w-0.5 h-36 bg-amber-900/50" />
-            <div className="w-6 h-1.5 bg-amber-900/60 rounded-sm" />
-            <div className="absolute -top-6 w-24 h-24 rounded-full bg-amber-400/10 blur-xl animate-pulse" />
-          </div>
-
-          {/* Styled Potted Plant on left base */}
-          <div className="absolute left-16 bottom-4 w-10 h-16 pointer-events-none opacity-50">
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-6 bg-stone-300 rounded-sm border border-stone-400" />
-            <div className="absolute -top-2 left-2 w-4 h-8 text-emerald-600 animate-plant-sway">
-              <svg viewBox="0 0 100 150" fill="currentColor">
-                <path d="M10,150 Q30,80 80,40 Q60,90 20,150 Z" />
-              </svg>
-            </div>
-            <div className="absolute -top-4 left-4 w-4 h-10 text-emerald-700 animate-plant-sway delay-500">
-              <svg viewBox="0 0 100 150" fill="currentColor" className="scale-x-[-1]">
-                <path d="M10,150 Q30,80 80,40 Q60,90 20,150 Z" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Professional Coach Figure Sitting in Armchair */}
-          <div className={`relative w-36 h-36 flex flex-col items-center justify-end pb-4 transition-all duration-500 ${
-            coachState === 'speaking' ? 'animate-coach-speak-bob' : 'animate-coach-breathe'
-          }`}>
-            
-            {/* Coach SVG Avatar */}
-            <svg width="115" height="115" viewBox="0 0 100 100" className="drop-shadow-lg overflow-visible">
-              {/* Sigmund Freud style Red Wing Armchair back */}
-              <path d="M 15 90 L 15 35 C 15 22, 23 15, 32 24 C 32 24, 50 18, 68 24 C 77 15, 85 22, 85 35 L 85 90 Z" fill="#7a0928" /> {/* Red back structure */}
-              <path d="M 22 90 L 22 40 C 22 32, 30 28, 50 28 C 70 28, 78 32, 78 40 L 78 90 Z" fill="#9e1039" /> {/* Inner cushion */}
-              <path d="M 12 90 C 12 72, 20 72, 20 90 Z" fill="#5c0d24" /> {/* Left armrest */}
-              <path d="M 88 90 C 88 72, 80 72, 80 90 Z" fill="#5c0d24" /> {/* Right armrest */}
-
-              {/* Body (Professional Brown Blazer Outfit with White Pocket Square) */}
-              <path d="M 28 90 C 28 66, 38 62, 50 62 C 62 62, 72 66, 72 90 Z" fill="#543d2b" /> {/* Brown suit jacket */}
-              <polygon points="44,62 56,62 50,78" fill="#ffffff" /> {/* Clean white button shirt */}
-              <polygon points="49,70 51,70 52,86 48,86" fill="#e63946" /> {/* Solid bright red tie */}
-
-              {/* Blazer Black Lapels */}
-              <path d="M 30 76 L 43 63 L 48 90 Z" fill="#1c1917" />
-              <path d="M 70 76 L 57 63 L 52 90 Z" fill="#1c1917" />
-
-              {/* White Pocket Square */}
-              <polygon points="33,78 37,74 38,79" fill="#ffffff" />
-
-              {/* Neck */}
-              <rect x="46" y="52" width="8" height="12" rx="1" fill="#fae1dd" />
-              <polygon points="44,62 48,62 46,67" fill="#ffffff" /> {/* Collar left */}
-              <polygon points="56,62 52,62 54,67" fill="#ffffff" /> {/* Collar right */}
-
-              {/* Face/Head */}
-              <circle cx="50" cy="42" r="11" fill="#fae1dd" />
-
-              {/* Slick back white hair */}
-              <path d="M 39 36 C 39 27, 42 26, 50 26 C 58 26, 61 27, 61 36 C 61 36, 50 33, 39 36 Z" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.5" />
-              <path d="M 39 36 L 39 42 L 41 40 Z" fill="#f1f5f9" /> {/* Sideburn left */}
-              <path d="M 61 36 L 61 42 L 59 40 Z" fill="#f1f5f9" /> {/* Sideburn right */}
-
-              {/* White beard & mustache covering neck and chin */}
-              <path d="M 40 45 C 40 57, 50 63, 60 45 C 55 42, 45 42, 40 45 Z" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.5" /> {/* Main Beard */}
-              <path d="M 43 46 Q 50 49 57 46 Q 50 51 43 46 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="0.5" /> {/* Mustache */}
-
-              {/* Round Wire-rimmed Glasses */}
-              <circle cx="45.5" cy="40" r="3.2" stroke="#292524" strokeWidth="0.8" fill="none" />
-              <circle cx="54.5" cy="40" r="3.2" stroke="#292524" strokeWidth="0.8" fill="none" />
-              <line x1="48.7" y1="40" x2="51.3" y2="40" stroke="#292524" strokeWidth="1" />
-              <line x1="39" y1="39" x2="42.3" y2="39" stroke="#292524" strokeWidth="0.8" />
-              <line x1="57.7" y1="39" x2="61" y2="39" stroke="#292524" strokeWidth="0.8" />
-
-              {/* Eyes (Blinking or Thinking/Closed) */}
-              {coachState === 'thinking' ? (
-                <>
-                  {/* Closed reflecting eyes */}
-                  <path d="M 42.5 40.5 Q 45.5 42.5 48.5 40.5" stroke="#292524" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-                  <path d="M 51.5 40.5 Q 54.5 42.5 57.5 40.5" stroke="#292524" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-                </>
-              ) : (
-                <>
-                  {/* Open blinking eyes */}
-                  <g className="animate-coach-blink origin-[50px_40px]">
-                    <circle cx="45.5" cy="40" r="1.1" fill="#292524" />
-                    <circle cx="54.5" cy="40" r="1.1" fill="#292524" />
-                  </g>
-                </>
-              )}
-
-              {/* Expressive eyebrows */}
-              <path d="M 41 35 Q 45 32 48 35" stroke="#292524" strokeWidth="1" fill="none" />
-              <path d="M 52 36 Q 55 35 59 35" stroke="#292524" strokeWidth="1" fill="none" />
-
-              {/* Mouth (Wiggling when speaking, gentle smile otherwise) */}
-              {coachState === 'speaking' ? (
-                <ellipse cx="50" cy="48" rx="2" ry="2.5" fill="#a4133c" className="animate-coach-speak-mouth origin-[50px_48px]" />
-              ) : (
-                <path d="M 47 47 Q 50 49 53 47" stroke="#292524" strokeWidth="1" fill="none" strokeLinecap="round" />
-              )}
-
-              {/* Left hand raised holding smoking pipe */}
-              <circle cx="25" cy="68" r="3.2" fill="#fae1dd" />
-              {/* Pipe Stem */}
-              <path d="M 24 67 C 22 58, 28 54, 46 51" stroke="#3e2723" strokeWidth="1" fill="none" strokeLinecap="round" />
-              {/* Pipe Bowl */}
-              <path d="M 22 70 C 19 70, 19 64, 22 64 Z" fill="#4e342e" />
-              <circle cx="21" cy="65" r="0.8" fill="#ff4d00" className="animate-pulse" /> {/* Glow embers */}
-
-              {/* Floating, rising smoke vector line with CSS drift */}
-              <path d="M 21 65 C 18 53, 25 41, 19 29 C 16 17, 24 11, 20 1" stroke="#f1f5f9" strokeWidth="1.2" fill="none" opacity="0.65" strokeLinecap="round" className="animate-smoke" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Speech Bubble / Subtitles Container */}
-        <div className="w-full bg-card/65 border border-border/85 rounded-2xl p-4 shadow-sm relative min-h-[90px] flex items-center justify-center text-center">
-          {/* Speech bubble arrow pointer pointing up to the sanctuary */}
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card border-t border-l border-border/85 rotate-45" />
-          <p className="text-xs font-serif italic text-foreground leading-relaxed line-clamp-3 relative z-10">
-            &ldquo;{speechBubbleText}&rdquo;
-          </p>
-        </div>
-      </div>
-    );
-  };
 
   const handleExportToJournal = () => {
     if (!activeSession) return;
@@ -955,17 +768,6 @@ export default function AIChatPage() {
                 </Button>
               </>
             )}
-
-            {/* Toggle Wellness Sanctuary Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSanctuaryCollapsed(!isSanctuaryCollapsed)}
-              className="hidden lg:flex h-8 w-8 text-muted-foreground cursor-pointer hover:bg-muted"
-              title={isSanctuaryCollapsed ? "Show Wellness Sanctuary" : "Minimize Wellness Sanctuary"}
-            >
-              <Brain className={`w-4.5 h-4.5 ${!isSanctuaryCollapsed ? 'text-primary' : ''}`} />
-            </Button>
           </div>
         </header>
 
@@ -979,13 +781,6 @@ export default function AIChatPage() {
             </div>
           ) : (
             <>
-              {/* Mobile/Tablet Wellness Coach Sanctuary (Only shown at start of chat, above welcome message) */}
-              {messages.length === 1 && (
-                <div className="lg:hidden block bg-card/45 border border-border/80 rounded-2xl p-5 shadow-sm max-w-2xl mx-auto mb-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                  {renderCoachSanctuary()}
-                </div>
-              )}
-
               {messages.map((msg, index) => {
                 const isUser = msg.role === 'user';
                 const wordCount = msg.content.split(/\s+/).filter(Boolean).length;
@@ -1141,15 +936,6 @@ export default function AIChatPage() {
           </form>
         </footer>
       </main>
-
-      {/* 3. Wellness Coach Animated Avatar Sanctuary Panel (Desktop view) */}
-      <aside 
-        className={`hidden lg:flex border-l border-border bg-card/15 backdrop-blur-md flex-col items-center justify-between select-none h-full overflow-y-auto transition-all duration-300 ease-in-out ${
-          isSanctuaryCollapsed ? 'w-0 p-0 border-l-0 overflow-hidden' : 'w-96 p-6'
-        }`}
-      >
-        {renderCoachSanctuary()}
-      </aside>
     </div>
   );
 }
