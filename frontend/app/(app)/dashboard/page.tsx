@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { MoodBadge } from '@/components/ui/mood-badge';
 import { inspirationalQuotes } from '@/lib/mock-data';
-import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote, Heart, Bookmark, Edit3, Check, Plus, Trash2, Star } from 'lucide-react';
+import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote, Heart, Bookmark, Edit3, Check, Plus, Trash2, Star, Shield, Sun, Moon, Sunrise, ArrowRight, Activity, Smile } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
@@ -47,11 +47,11 @@ const writingPrompts = [
 ];
 
 const MOOD_BUTTONS = [
-  { emoji: '😢', mood: 'SAD', score: 1, label: 'Sad', color: '#64748b' },
-  { emoji: '😰', mood: 'ANXIOUS', score: 2, label: 'Anxious', color: '#f97316' },
-  { emoji: '😐', mood: 'OKAY', score: 3, label: 'Okay', color: '#eab308' },
-  { emoji: '🙂', mood: 'GOOD', score: 4, label: 'Good', color: '#3b82f6' },
-  { emoji: '🌟', mood: 'EXCELLENT', score: 5, label: 'Excellent', color: '#22c55e' },
+  { emoji: '😢', mood: 'SAD', score: 1, label: 'Sad', color: '#64748b', gradient: 'from-slate-500/20 to-slate-600/10' },
+  { emoji: '😰', mood: 'ANXIOUS', score: 2, label: 'Anxious', color: '#f97316', gradient: 'from-orange-500/20 to-amber-600/10' },
+  { emoji: '😐', mood: 'OKAY', score: 3, label: 'Okay', color: '#eab308', gradient: 'from-yellow-500/20 to-amber-500/10' },
+  { emoji: '🙂', mood: 'GOOD', score: 4, label: 'Good', color: '#3b82f6', gradient: 'from-blue-500/20 to-cyan-500/10' },
+  { emoji: '🌟', mood: 'EXCELLENT', score: 5, label: 'Excellent', color: '#22c55e', gradient: 'from-emerald-500/20 to-teal-500/10' },
 ];
 
 export default function DashboardPage() {
@@ -71,6 +71,7 @@ export default function DashboardPage() {
     size: number;
   }>>([]);
   const [greeting, setGreeting] = useState('Welcome back');
+  const [greetingIcon, setGreetingIcon] = useState<'sun' | 'sunrise' | 'moon'>('sun');
 
   // Sticky Notes States
   const [stickyNotes, setStickyNotes] = useState<StickyNote[]>([]);
@@ -91,9 +92,16 @@ export default function DashboardPage() {
     setMounted(true);
     setCurrentPrompt(writingPrompts[Math.floor(Math.random() * writingPrompts.length)]);
     const hours = new Date().getHours();
-    if (hours < 12) setGreeting('Good morning 🌅');
-    else if (hours < 17) setGreeting('Good afternoon ☀️');
-    else setGreeting('Good evening 🌌');
+    if (hours < 12) {
+      setGreeting('Good Morning 🌅');
+      setGreetingIcon('sunrise');
+    } else if (hours < 17) {
+      setGreeting('Good Afternoon ☀️');
+      setGreetingIcon('sun');
+    } else {
+      setGreeting('Good Evening 🌌');
+      setGreetingIcon('moon');
+    }
 
     (async () => {
       try {
@@ -134,7 +142,7 @@ export default function DashboardPage() {
       const delay = Math.random() * 0.15;
       const size = 6 + Math.random() * 8;
       const rotation = 90 + Math.random() * 270;
-      const color = i % 3 === 0 ? '#f59e0b' : i % 3 === 1 ? '#38bdf8' : '#f43f5e'; // Amber, Sky, Rose
+      const color = i % 3 === 0 ? '#f59e0b' : i % 3 === 1 ? '#38bdf8' : '#f43f5e';
       return { x, y, delay, size, rotation, color };
     });
   }, []);
@@ -148,7 +156,6 @@ export default function DashboardPage() {
   };
 
   const handleLogMood = async (m: typeof MOOD_BUTTONS[0], e: React.MouseEvent<HTMLButtonElement>) => {
-    // Generate explosive particle burst relative to click location in card
     const newParticles = Array.from({ length: 16 }).map((_, i) => {
       const angle = (i / 16) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
       const distance = 40 + Math.random() * 50;
@@ -167,7 +174,6 @@ export default function DashboardPage() {
     });
     setMoodParticles(newParticles);
 
-    // Clear particles after animation
     setTimeout(() => {
       setMoodParticles([]);
     }, 1300);
@@ -176,7 +182,7 @@ export default function DashboardPage() {
       const result = await moodApi.create({
         mood: m.mood as any,
         score: m.score,
-        notes: 'Quick check-in from dashboard',
+        notes: 'Quick check-in from dashboard sanctuary',
       });
       setTodayMood(result.data.entry);
     } catch {
@@ -184,7 +190,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Load sticky notes from local storage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('dashboard_sticky_notes');
@@ -194,8 +199,8 @@ export default function DashboardPage() {
         const defaultNotes: StickyNote[] = [
           {
             id: '1',
-            title: 'Mindful Reminder 🧘',
-            content: 'Take 3 deep breaths before starting work. Smile!',
+            title: 'Mindful Sanctuary 🧘',
+            content: 'Take 3 slow, deep breaths. You are present, calm, and grounded.',
             color: 'yellow',
             isFavorite: true,
             isBookmarked: true,
@@ -203,8 +208,8 @@ export default function DashboardPage() {
           },
           {
             id: '2',
-            title: 'Weekly Manifestation 💫',
-            content: 'I am capable of achieving all my goals with calmness and focus.',
+            title: 'Daily Manifestation 💫',
+            content: 'I attract peace, creative clarity, and positive energy into my journey.',
             color: 'blue',
             isFavorite: false,
             isBookmarked: true,
@@ -227,8 +232,8 @@ export default function DashboardPage() {
   const handleAddNote = () => {
     const newNote: StickyNote = {
       id: String(Date.now()),
-      title: 'New Note',
-      content: 'Write something here...',
+      title: 'Personal Reflection ✍️',
+      content: 'Write an uplifting thought or intention...',
       color: 'yellow',
       isFavorite: false,
       isBookmarked: false,
@@ -237,7 +242,6 @@ export default function DashboardPage() {
     const updated = [newNote, ...stickyNotes];
     saveNotes(updated);
     
-    // Auto start editing the new note
     setEditingNoteId(newNote.id);
     setNoteTitle(newNote.title);
     setNoteContent(newNote.content);
@@ -286,229 +290,203 @@ export default function DashboardPage() {
   const recentEntries = entries.slice(1, 4);
 
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-6xl mx-auto">
-      {/* Bento Sanctuary Header */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Sanctuary Hero Card */}
-        <div className="md:col-span-2 bg-gradient-to-br from-card via-card to-secondary/5 border border-border rounded-2xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between shadow-neon-primary card-glow min-h-[190px]">
-          {/* Animated Ambient background circle representing sun/moon */}
-          <div className="absolute right-0 top-0 -mr-6 -mt-6 w-36 h-36 rounded-full bg-accent/15 blur-3xl animate-pulse pointer-events-none" />
-          
-          <div className="space-y-2.5 z-10">
-            <span className="text-[10px] uppercase font-extrabold tracking-widest text-primary/95 bg-primary/10 px-2 py-0.5 rounded-full">Daily Sanctuary</span>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-              {greeting}, {user.name}!
+    <div className="relative min-h-screen p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto overflow-hidden">
+      {/* Ambient Aurora Glow Background Orbs */}
+      <div className="absolute top-10 left-1/4 w-96 h-96 rounded-full bg-gradient-to-tr from-emerald-500/15 via-teal-500/15 to-cyan-500/10 blur-3xl pointer-events-none animate-aurora-float" />
+      <div className="absolute top-1/3 right-10 w-96 h-96 rounded-full bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-rose-500/10 blur-3xl pointer-events-none animate-aurora-float-delayed" />
+
+      {/* Hero Sanctuary Banner */}
+      <div className="relative rounded-3xl p-6 md:p-10 border border-white/40 dark:border-white/10 glass-card-sanctuary shadow-2xl overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-amber-400/20 via-rose-500/15 to-transparent rounded-full blur-2xl pointer-events-none animate-pulse" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 animate-spin duration-3000" />
+              <span>Personal Wellness Sanctuary</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+            </div>
+
+            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground font-serif">
+              {greeting}, <span className="bg-gradient-to-r from-teal-600 via-primary to-indigo-600 bg-clip-text text-transparent">{user.name}!</span>
             </h1>
-            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-              Welcome to your private wellness space. How has your journey been today? Select a reflection below or record your thoughts.
+
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+              Your safe space for emotional clarity, guided reflections, and daily mindfulness. Select a check-in below or record your thoughts in peace.
             </p>
-          </div>
-          
-          {/* Small decorative orbital icon in corner */}
-          <div className="absolute right-6 bottom-6 w-12 h-12 rounded-full border border-border/40 flex items-center justify-center animate-orbit bg-background/30 backdrop-blur-sm pointer-events-none">
-            <Sparkles className="w-5 h-5 text-accent animate-pulse" />
-          </div>
-        </div>
 
-        {/* Quick Stats Bento Widgets */}
-        <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-          {/* Streak Bento Widget */}
-          <div className="bg-card border border-border rounded-2xl p-4 md:p-5 flex items-center gap-4 hover:scale-[1.02] transition-all duration-300 shadow-neon-accent card-glow">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
-              <Zap className="w-6 h-6 fill-accent/10" />
-            </div>
-            <div>
-              <p className="text-xl md:text-2xl font-bold tracking-tight">{user.streakDays} Days</p>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Current Streak</p>
+            {/* Quick Access Badges */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 border border-border/60 text-xs font-semibold text-foreground">
+                <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+                <span>{user.streakDays} Day Streak</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 border border-border/60 text-xs font-semibold text-foreground">
+                <BookOpen className="w-4 h-4 text-teal-600" />
+                <span>{user.totalEntries} Memories Saved</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 border border-border/60 text-xs font-semibold text-foreground">
+                <Shield className="w-4 h-4 text-emerald-600" />
+                <span>Sigmund Freud Counselor Ready</span>
+              </div>
             </div>
           </div>
 
-          {/* Reflections Bento Widget */}
-          <div className="bg-card border border-border rounded-2xl p-4 md:p-5 flex items-center gap-4 hover:scale-[1.02] transition-all duration-300 shadow-neon-primary card-glow">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xl md:text-2xl font-bold tracking-tight">{user.totalEntries}</p>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Total Entries</p>
-            </div>
+          {/* Quick Primary Actions Floating Glass Box */}
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 min-w-[240px]">
+            <Link href="/journal/new" className="w-full">
+              <Button className="w-full h-12 bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-primary/90 text-white font-bold rounded-2xl shadow-lg hover:shadow-teal-500/25 transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
+                <PenTool className="w-4 h-4" />
+                <span>Write Journal Entry</span>
+              </Button>
+            </Link>
+
+            <Link href="/journal/voice" className="w-full">
+              <Button variant="outline" className="w-full h-12 border-primary/30 hover:border-primary text-foreground font-semibold rounded-2xl backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
+                <MessageSquare className="w-4 h-4 text-teal-600" />
+                <span>Voice Sanctuary</span>
+              </Button>
+            </Link>
+
+            <Link href="/ai-chat" className="w-full">
+              <Button variant="secondary" className="w-full h-11 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
+                <Sparkles className="w-4 h-4" />
+                <span>AI Counselor Chat</span>
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <Link href="/journal/new" className="group">
-          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-xl p-6 cursor-pointer hover:border-primary/40 hover:scale-[1.01] hover:shadow-lg transition-all duration-300 relative overflow-hidden bg-gradient-shift">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">Write New Entry</h3>
-                <p className="text-sm text-muted-foreground">Express your thoughts and feelings</p>
-              </div>
-              <PenTool className="w-8 h-8 text-primary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/journal/voice" className="group">
-          <div className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent border border-secondary/20 rounded-xl p-6 cursor-pointer hover:border-secondary/40 hover:scale-[1.01] hover:shadow-lg transition-all duration-300 relative overflow-hidden bg-gradient-shift">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-lg text-foreground group-hover:text-secondary transition-colors">Voice Journal</h3>
-                <p className="text-sm text-muted-foreground">Record your thoughts by voice</p>
-              </div>
-              <MessageSquare className="w-8 h-8 text-secondary group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-            </div>
-          </div>
-        </Link>
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left Column - Today & Recent */}
+      {/* Main Grid Section */}
+      <div className="grid lg:grid-cols-3 gap-8 relative z-10">
+        {/* Left Column (2/3 width) - Guided Reflections, Notes & Feed */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Daily Wisdom Card (Premium Quote Highlight) */}
-          <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 sanctuary-quote-glow group">
-            {/* Absolute quotes icon in background */}
-            <Quote className="absolute right-6 bottom-4 w-28 h-28 text-accent/5 pointer-events-none transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700" />
+
+          {/* Daily Wisdom Card (Premium Quote Glass Highlight) */}
+          <div className="relative overflow-hidden rounded-3xl p-6 md:p-8 glass-card-sanctuary border border-amber-500/20 shadow-xl group">
+            <Quote className="absolute right-6 bottom-4 w-32 h-32 text-amber-500/10 pointer-events-none transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700" />
             
             <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-accent/10 text-accent uppercase tracking-wider">
-                <Sparkles className="w-3 h-3 fill-accent/20 animate-pulse" />
-                Daily Wisdom
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 fill-amber-500/20 animate-pulse" />
+                Daily Wisdom Reflection
               </span>
               
-              <blockquote className="text-xl md:text-2xl font-serif font-extrabold italic bg-gradient-to-r from-foreground via-foreground to-accent bg-clip-text text-transparent tracking-wide leading-relaxed text-balance">
+              <blockquote className="text-xl md:text-3xl font-serif font-extrabold italic bg-gradient-to-r from-foreground via-foreground to-amber-600 bg-clip-text text-transparent tracking-wide leading-relaxed text-balance">
                 &ldquo;{quote}&rdquo;
               </blockquote>
               
-              <div className="w-12 h-0.5 bg-gradient-to-r from-accent/40 to-transparent rounded-full" />
+              <div className="w-16 h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent rounded-full" />
             </div>
           </div>
 
-          {/* Guided Journaling Prompt Card */}
-          <div className="bg-card border border-border/50 rounded-xl p-6 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 space-y-4 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md cursor-default">
+          {/* Guided Reflection Prompt Card */}
+          <div className="glass-card-sanctuary border border-teal-500/20 rounded-3xl p-6 md:p-8 space-y-4 hover:border-teal-500/40 transition-all duration-300 shadow-lg">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-primary flex items-center gap-2 text-sm">
-                <Sparkles className="w-4 h-4" />
+              <h3 className="font-bold text-teal-600 dark:text-teal-400 flex items-center gap-2 text-sm">
+                <Sparkles className="w-4 h-4 text-teal-500" />
                 Guided Reflection Prompt
               </h3>
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleNextPrompt}
-                className="text-xs text-muted-foreground hover:text-primary transition-colors font-medium border border-border px-2.5 py-1 rounded-md hover:bg-muted cursor-pointer"
+                className="text-xs text-muted-foreground hover:text-foreground border-border rounded-xl cursor-pointer"
               >
-                New Prompt
-              </button>
+                Refresh Prompt
+              </Button>
             </div>
-            <p className="text-lg font-medium text-foreground leading-relaxed">&quot;{currentPrompt}&quot;</p>
-            <div className="pt-1">
+
+            <p className="text-lg md:text-xl font-medium text-foreground leading-relaxed italic font-serif">
+              &quot;{currentPrompt}&quot;
+            </p>
+
+            <div className="pt-2">
               <Link href={`/journal/new?prompt=${encodeURIComponent(currentPrompt)}`}>
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-semibold transition-transform active:scale-95 cursor-pointer">
-                  Write Entry with this Prompt
+                <Button size="sm" className="bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-primary/90 text-white font-bold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer gap-2">
+                  <span>Write Entry with this Prompt</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </div>
           </div>
 
-          {loading ? (
-            <p className="text-muted-foreground">Loading your entries...</p>
-          ) : (
-            <>
-              {/* Today's Entry */}
-              {todayEntry && (
-                <div className="space-y-3">
-                  <h2 className="text-xl font-semibold">Latest Reflection</h2>
-                  <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold">{todayEntry.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(todayEntry.createdAt).toLocaleDateString('en-US', {
-                            weekday: 'long',
+          {/* Recent Reflections List */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold font-serif text-foreground flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-teal-600" />
+                Recent Journal Reflections
+              </h2>
+              <Link href="/journal">
+                <Button variant="ghost" size="sm" className="text-xs text-teal-600 hover:text-teal-700 font-bold cursor-pointer">
+                  View All ({user.totalEntries})
+                </Button>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="p-8 text-center text-muted-foreground">Loading your memories...</div>
+            ) : entries.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {entries.map((entry) => (
+                  <Link key={entry.id} href={`/journal/${entry.id}`} className="group">
+                    <div className="glass-card-sanctuary border border-border/60 hover:border-teal-500/40 rounded-2xl p-5 space-y-3 transition-all duration-300 hover:scale-[1.02] shadow-md hover:shadow-xl h-full flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <h4 className="font-bold text-base text-foreground group-hover:text-teal-600 transition-colors line-clamp-1">
+                            {entry.title}
+                          </h4>
+                          <MoodBadge mood={fromBackendMood(entry.mood)} size="sm" />
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                          {entry.content}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1 font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                          {new Date(entry.createdAt).toLocaleDateString(undefined, {
                             month: 'short',
                             day: 'numeric',
                           })}
-                        </p>
-                      </div>
-                      <MoodBadge mood={fromBackendMood(todayEntry.mood)} size="lg" />
-                    </div>
-                    <p className="text-foreground line-clamp-3">{todayEntry.content}</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {todayEntry.emotions.slice(0, 3).map(({ emotion }) => (
-                        <span
-                          key={emotion.id}
-                          className="text-xs px-3 py-1 bg-muted rounded-full text-muted-foreground"
-                        >
-                          {emotion.name}
                         </span>
-                      ))}
+                        <span className="font-bold text-teal-600 group-hover:translate-x-1 transition-transform">
+                          Read Entry &rarr;
+                        </span>
+                      </div>
                     </div>
-                    <Link href={`/journal/${todayEntry.id}`}>
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Full Entry
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Recent Entries */}
-              <div className="space-y-3">
-                <h2 className="text-xl font-semibold">Recent Entries</h2>
-                {recentEntries.length > 0 ? (
-                  <div className="space-y-3">
-                    {recentEntries.map((entry) => (
-                      <Link key={entry.id} href={`/journal/${entry.id}`}>
-                        <div className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium truncate">{entry.title}</h4>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {new Date(entry.createdAt).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </p>
-                            </div>
-                            <MoodBadge mood={fromBackendMood(entry.mood)} size="md" />
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No entries yet — write your first one to see it here.
-                  </p>
-                )}
-                <Link href="/journal">
-                  <Button variant="outline" className="w-full">
-                    View All Entries
-                  </Button>
-                </Link>
+                  </Link>
+                ))}
               </div>
-            </>
-          )}
+            ) : (
+              <div className="p-8 text-center glass-card-sanctuary rounded-2xl border border-dashed border-border">
+                <p className="text-sm text-muted-foreground font-semibold">No journal entries written yet.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Start your journey by writing your first reflection above!</p>
+              </div>
+            )}
+          </div>
 
-          {/* Sticky Notes & Favorites Board */}
+          {/* Sticky Notes & Affirmations Board */}
           <div className="space-y-4 pt-6 border-t border-border/40">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
               <div className="space-y-1">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Quote className="w-5 h-5 text-primary rotate-180" />
-                  Sticky Notes Board
+                <h2 className="text-2xl font-bold font-serif flex items-center gap-2 text-foreground">
+                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  Mindful Sticky Notes Board
                 </h2>
-                <p className="text-xs text-muted-foreground">Pin quick thoughts, affirmations, or bookmark manifestations</p>
+                <p className="text-xs text-muted-foreground">Pin quick thoughts, affirmations, or manifestation reminders</p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                {/* Filters */}
-                <div className="flex bg-muted/65 p-1 rounded-lg border border-border/40 text-xs">
+                <div className="flex bg-muted/60 p-1 rounded-xl border border-border/40 text-xs">
                   <button
                     onClick={() => setNoteFilter('all')}
-                    className={`px-3 py-1 rounded-md font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                       noteFilter === 'all'
-                        ? 'bg-card text-foreground shadow-sm border border-border/20'
+                        ? 'bg-card text-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -516,9 +494,9 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={() => setNoteFilter('favorites')}
-                    className={`px-3 py-1 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
                       noteFilter === 'favorites'
-                        ? 'bg-card text-foreground shadow-sm border border-border/20'
+                        ? 'bg-card text-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -530,17 +508,17 @@ export default function DashboardPage() {
                 <Button
                   onClick={handleAddNote}
                   size="sm"
-                  className="bg-primary hover:bg-primary/95 text-white gap-1 text-xs font-semibold cursor-pointer h-8 px-3"
+                  className="bg-teal-600 hover:bg-teal-700 text-white gap-1 text-xs font-bold rounded-xl cursor-pointer h-9 px-4"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   Add Note
                 </Button>
               </div>
             </div>
 
             {filteredNotes.length === 0 ? (
-              <div className="py-10 text-center bg-card/40 border border-dashed border-border/60 rounded-2xl">
-                <p className="text-sm font-semibold text-muted-foreground">No sticky notes found.</p>
+              <div className="py-10 text-center glass-card-sanctuary border border-dashed border-border/60 rounded-2xl">
+                <p className="text-sm font-semibold text-muted-foreground">No sticky notes pinned.</p>
                 <p className="text-xs text-muted-foreground/60 mt-0.5">Click &quot;Add Note&quot; to pin a reminder!</p>
               </div>
             ) : (
@@ -552,9 +530,8 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={note.id}
-                      className={`relative flex flex-col justify-between p-5 rounded-2xl border-l-[6px] border-l-current border shadow-sm hover:shadow-md transition-all duration-300 ${colorConfig.bg} ${colorConfig.text} overflow-hidden`}
+                      className={`relative flex flex-col justify-between p-5 rounded-2xl border-l-[6px] border-l-current border shadow-md hover:shadow-xl transition-all duration-300 ${colorConfig.bg} ${colorConfig.text} overflow-hidden hover:scale-[1.02]`}
                     >
-                      {/* Top Action Bar */}
                       <div className="flex items-center justify-between mb-3 border-b border-black/5 pb-2">
                         {isEditing ? (
                           <div className="flex gap-1.5">
@@ -569,26 +546,25 @@ export default function DashboardPage() {
                             ))}
                           </div>
                         ) : (
-                          <span className="text-[9px] uppercase font-bold opacity-60 tracking-wider">
+                          <span className="text-[10px] uppercase font-bold opacity-60 tracking-wider">
                             Pinned on {new Date(note.createdAt).toLocaleDateString()}
                           </span>
                         )}
 
                         <div className="flex items-center gap-2">
-                          {/* Favorite / Bookmark Toggle Buttons */}
                           <button
                             onClick={() => handleToggleFavoriteNote(note.id)}
                             className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer"
                             title="Toggle Favorite"
                           >
-                            <Heart className={`w-3.5 h-3.5 ${note.isFavorite ? 'fill-current text-rose-600' : 'opacity-65 hover:opacity-100'}`} />
+                            <Heart className={`w-4 h-4 ${note.isFavorite ? 'fill-current text-rose-600' : 'opacity-65 hover:opacity-100'}`} />
                           </button>
                           <button
                             onClick={() => handleToggleBookmarkNote(note.id)}
                             className="p-1 rounded hover:bg-black/5 transition-colors cursor-pointer"
                             title="Toggle Bookmark"
                           >
-                            <Bookmark className={`w-3.5 h-3.5 ${note.isBookmarked ? 'fill-current text-amber-600' : 'opacity-65 hover:opacity-100'}`} />
+                            <Bookmark className={`w-4 h-4 ${note.isBookmarked ? 'fill-current text-amber-600' : 'opacity-65 hover:opacity-100'}`} />
                           </button>
                           
                           {!isEditing && (
@@ -617,21 +593,20 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Content Card Body */}
                       <div className="flex-1 space-y-1">
                         {isEditing ? (
                           <div className="space-y-2">
                             <input
                               value={noteTitle}
                               onChange={(e) => setNoteTitle(e.target.value)}
-                              className="w-full bg-white/40 border border-black/10 rounded px-2 py-1 text-xs font-bold focus:outline-none focus:bg-white/60"
+                              className="w-full bg-white/40 border border-black/10 rounded-lg px-2.5 py-1 text-xs font-bold focus:outline-none focus:bg-white/60"
                               placeholder="Note Title"
                             />
                             <textarea
                               value={noteContent}
                               onChange={(e) => setNoteContent(e.target.value)}
                               rows={3}
-                              className="w-full bg-white/40 border border-black/10 rounded px-2 py-1 text-xs focus:outline-none focus:bg-white/60 resize-none"
+                              className="w-full bg-white/40 border border-black/10 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:bg-white/60 resize-none"
                               placeholder="Note details..."
                             />
                           </div>
@@ -643,18 +618,17 @@ export default function DashboardPage() {
                         )}
                       </div>
 
-                      {/* Editing confirmation toolbar */}
                       {isEditing && (
                         <div className="flex justify-end gap-1.5 mt-3 pt-2 border-t border-black/5">
                           <button
                             onClick={() => setEditingNoteId(null)}
-                            className="p-1 px-2 bg-black/5 hover:bg-black/10 rounded text-[9px] font-bold transition-all cursor-pointer text-current"
+                            className="p-1 px-2.5 bg-black/5 hover:bg-black/10 rounded-lg text-[10px] font-bold transition-all cursor-pointer text-current"
                           >
                             Cancel
                           </button>
                           <button
                             onClick={() => handleUpdateNote(note.id)}
-                            className="p-1 px-2.5 bg-black/80 hover:bg-black/90 text-white rounded text-[9px] font-bold transition-all cursor-pointer flex items-center gap-0.5"
+                            className="p-1 px-3 bg-black/80 hover:bg-black/90 text-white rounded-lg text-[10px] font-bold transition-all cursor-pointer flex items-center gap-0.5"
                           >
                             <Check className="w-3 h-3" /> Save
                           </button>
@@ -668,17 +642,20 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right Column - Stats */}
+        {/* Right Column (1/3 width) - Mood Matrix & Wellness Analytics */}
         <div className="space-y-6">
-          {/* Interactive Mood Logger Widget */}
-          <div className="bg-card border border-border rounded-xl p-6 space-y-4 relative overflow-hidden">
-            <h3 className="font-semibold text-sm flex items-center gap-2 text-primary">
-              <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500/20" />
-              How are you feeling right now?
-            </h3>
+
+          {/* Interactive Mood Matrix Stage */}
+          <div className="glass-card-sanctuary border border-border/60 rounded-3xl p-6 space-y-4 relative overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm flex items-center gap-2 text-foreground">
+                <Smile className="w-4 h-4 text-amber-500" />
+                How are you feeling right now?
+              </h3>
+            </div>
             
             {todayMood ? (
-              <div className="flex items-center gap-3 bg-muted/30 p-3 rounded-lg border border-border/40">
+              <div className="flex items-center gap-3 bg-teal-500/10 p-3.5 rounded-2xl border border-teal-500/20">
                 <MoodBadge mood={fromBackendMood(todayMood.mood)} size="md" />
                 <div className="text-xs">
                   <span className="text-muted-foreground">Logged today:</span>{' '}
@@ -686,11 +663,10 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">Tap an emoji below to check-in and log your mood.</p>
+              <p className="text-xs text-muted-foreground">Tap an emoji below to check-in and log your emotional state.</p>
             )}
 
-            <div className="relative flex items-center justify-between gap-1 pt-1">
-              {/* Confetti Particles */}
+            <div className="relative flex items-center justify-between gap-1 pt-2">
               {moodParticles.map((p) => (
                 <span
                   key={p.id}
@@ -715,7 +691,7 @@ export default function DashboardPage() {
                   key={m.mood}
                   onClick={(e) => handleLogMood(m, e)}
                   title={m.label}
-                  className="relative p-2.5 text-2xl rounded-full bg-muted/40 hover:bg-muted/90 hover:scale-125 transition-all duration-300 cursor-pointer active:scale-95 z-10"
+                  className={`relative p-3 text-2xl rounded-2xl bg-gradient-to-br ${m.gradient} hover:scale-125 transition-all duration-300 cursor-pointer active:scale-95 z-10 border border-border/40 hover:border-primary/50 shadow-sm`}
                 >
                   {m.emoji}
                 </button>
@@ -723,67 +699,78 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-            <h3 className="font-semibold">Your Stats</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm">
-                  <Zap className="w-4 h-4 text-accent" />
-                  <span>Current Streak</span>
+          {/* Life Sanctuary Balance Radar */}
+          <div className="glass-card-sanctuary border border-border/60 rounded-3xl p-6 space-y-4 shadow-xl">
+            <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+              <Activity className="w-4 h-4 text-teal-600" />
+              Mindful Sanctuary Metrics
+            </h3>
+
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <div className="flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Emotional Harmony</span>
+                  <span className="text-teal-600 font-bold">94%</span>
                 </div>
-                <span className="font-semibold">{user.streakDays} days</span>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full w-[94%]" />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm">
-                  <BookOpen className="w-4 h-4 text-primary" />
-                  <span>Total Entries</span>
+
+              <div className="space-y-1">
+                <div className="flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Streak Consistency</span>
+                  <span className="text-amber-500 font-bold">{user.streakDays * 20 > 100 ? 100 : user.streakDays * 20}%</span>
                 </div>
-                <span className="font-semibold">{user.totalEntries}</span>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-amber-400 to-amber-600 h-full" style={{ width: `${Math.min(100, user.streakDays * 20)}%` }} />
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-secondary" />
-                  <span>Member Since</span>
+
+              <div className="space-y-1">
+                <div className="flex justify-between font-semibold">
+                  <span className="text-muted-foreground">Reflection Depth</span>
+                  <span className="text-indigo-600 font-bold">88%</span>
                 </div>
-                <span className="font-semibold">
-                  {new Date(user.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full w-[88%]" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="bg-card border border-border rounded-xl p-6 space-y-3">
-            <h3 className="font-semibold mb-4">Quick Links</h3>
+          {/* Quick Links Sanctuary */}
+          <div className="glass-card-sanctuary border border-border/60 rounded-3xl p-6 space-y-3 shadow-xl">
+            <h3 className="font-bold text-sm text-foreground mb-4">Sanctuary Tools</h3>
             <Link href="/reports" className="block">
-              <Button variant="outline" className="w-full justify-start cursor-pointer">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                View Reports
+              <Button variant="outline" className="w-full justify-start cursor-pointer rounded-2xl h-11 border-border/60 hover:bg-primary/10">
+                <TrendingUp className="w-4 h-4 mr-2 text-teal-600" />
+                View Emotional Reports
               </Button>
             </Link>
-            <Link href="/ai-chat" className="block">
-              <Button variant="outline" className="w-full justify-start cursor-pointer">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Chat with AI
+            <Link href="/gratitude" className="block">
+              <Button variant="outline" className="w-full justify-start cursor-pointer rounded-2xl h-11 border-border/60 hover:bg-rose-500/10">
+                <Heart className="w-4 h-4 mr-2 text-rose-500" />
+                Gratitude Journal
+              </Button>
+            </Link>
+            <Link href="/manifestation" className="block">
+              <Button variant="outline" className="w-full justify-start cursor-pointer rounded-2xl h-11 border-border/60 hover:bg-purple-500/10">
+                <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
+                Manifestation Sanctuary
               </Button>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Animated Streak Celebration Modal overlay */}
+      {/* Streak Modal */}
       {showStreakModal && (
         <div className="fixed inset-0 bg-background/60 backdrop-blur-md flex items-center justify-center z-50 animate-in fade-in duration-300">
-          <div className="bg-card/90 border border-amber-500/30 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl relative overflow-hidden flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
-            {/* Glowing Aura Effect */}
+          <div className="glass-card-sanctuary border border-amber-500/30 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl relative overflow-hidden flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 duration-500">
             <div className="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl animate-pulse" />
             <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-pulse" />
 
-            {/* Exploding Sparkles/Confetti System */}
             {streakParticles.map((p, i) => (
               <span
                 key={i}
@@ -806,7 +793,6 @@ export default function DashboardPage() {
 
             {user.streakDays > 0 ? (
               <>
-                {/* Streak Icon Animation container with nested pulsing ripples */}
                 <div className="relative flex items-center justify-center w-24 h-24 bg-amber-500/10 rounded-full border border-amber-500/30 shadow-lg animate-bounce duration-1000 z-10">
                   <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ripple pointer-events-none" />
                   <Zap className="w-12 h-12 text-amber-500 fill-amber-500 animate-pulse duration-700 filter drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
@@ -814,7 +800,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-2 z-10">
-                  <h2 className="text-3xl font-extrabold text-foreground tracking-tight">
+                  <h2 className="text-3xl font-extrabold text-foreground tracking-tight font-serif">
                     {user.streakDays} Day Streak!
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -825,7 +811,7 @@ export default function DashboardPage() {
                 <div className="w-full flex flex-col gap-2 pt-2 z-10">
                   <Button 
                     onClick={() => setShowStreakModal(false)}
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20 cursor-pointer"
+                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-md shadow-amber-500/20 cursor-pointer"
                   >
                     Keep it up! 🔥
                   </Button>
@@ -833,15 +819,14 @@ export default function DashboardPage() {
               </>
             ) : (
               <>
-                {/* Welcome Book Icon with nested pulsing ripples */}
                 <div className="relative flex items-center justify-center w-24 h-24 bg-primary/10 rounded-full border border-primary/30 shadow-lg animate-bounce duration-1000 z-10">
                   <div className="absolute inset-0 rounded-full bg-primary/20 animate-ripple pointer-events-none" />
-                  <BookOpen className="w-12 h-12 text-primary animate-pulse duration-1000 filter drop-shadow-[0_0_12px_rgba(var(--primary),0.4)]" />
+                  <BookOpen className="w-12 h-12 text-primary animate-pulse duration-1000" />
                   <Sparkles className="absolute -top-1 -right-1 w-6 h-6 text-accent animate-spin duration-3000" />
                 </div>
 
                 <div className="space-y-2 z-10">
-                  <h2 className="text-3xl font-extrabold text-foreground tracking-tight">
+                  <h2 className="text-3xl font-extrabold text-foreground tracking-tight font-serif">
                     Welcome! ✨
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -852,7 +837,7 @@ export default function DashboardPage() {
                 <div className="w-full flex flex-col gap-2 pt-2 z-10">
                   <Link href="/journal/new" className="w-full">
                     <Button 
-                      className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
+                      className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
                     >
                       Start Journaling
                     </Button>
