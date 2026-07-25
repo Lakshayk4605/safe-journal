@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Dancing+Script:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -2051,5 +2051,40 @@ textarea,
 /* Custom handwriting utility font styling */
 .font-handwriting {
   font-family: 'Caveat', cursive, sans-serif !important;
+}
+.font-script {
+  font-family: 'Dancing Script', cursive, sans-serif !important;
+}
+
+/* Ruled notebook paper grid background */
+.bg-ruled-paper {
+  background-color: #fffdf5;
+  background-image: 
+    linear-gradient(90deg, transparent 44px, #f87171 44px, #f87171 46px, transparent 46px),
+    linear-gradient(#cbd5e1 1px, transparent 1px);
+  background-size: 100% 100%, 100% 2.25rem;
+  line-height: 2.25rem !important;
+}
+
+.dark .bg-ruled-paper {
+  background-color: #1a1714;
+  background-image: 
+    linear-gradient(90deg, transparent 44px, #ef4444 44px, #ef4444 46px, transparent 46px),
+    linear-gradient(#334155 1px, transparent 1px);
+  background-size: 100% 100%, 100% 2.25rem;
+  line-height: 2.25rem !important;
+}
+
+/* Realistic Fountain Pen Glide animation */
+@keyframes pen-glide {
+  0% { transform: rotate(-35deg) translate(0, 0); }
+  25% { transform: rotate(-30deg) translate(3px, -3px); }
+  50% { transform: rotate(-38deg) translate(-2px, 3px); }
+  75% { transform: rotate(-32deg) translate(2px, -1px); }
+  100% { transform: rotate(-35deg) translate(0, 0); }
+}
+
+.animate-pen-glide {
+  animation: pen-glide 0.35s infinite ease-in-out;
 }
 
