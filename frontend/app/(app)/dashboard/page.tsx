@@ -75,13 +75,23 @@ export default function DashboardPage() {
   const [volume, setVolume] = useState(0.6);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
   const soundNodesRef = useRef<{ stop: () => void } | null>(null);
 
-  // Web Audio API Ambient Soundscape Synthesizer
+  // Dynamic Volume / Mute Update without re-triggering sound creation
+  useEffect(() => {
+    if (masterGainRef.current && audioCtxRef.current) {
+      try {
+        masterGainRef.current.gain.setValueAtTime(isMuted ? 0 : volume, audioCtxRef.current.currentTime);
+      } catch {}
+    }
+  }, [isMuted, volume]);
+
+  // Crash-proof Web Audio API Ambient Soundscape Synthesizer
   useEffect(() => {
     if (!activeSoundscape) {
       if (soundNodesRef.current) {
-        soundNodesRef.current.stop();
+        try { soundNodesRef.current.stop(); } catch {}
         soundNodesRef.current = null;
       }
       return;
@@ -89,184 +99,191 @@ export default function DashboardPage() {
 
     if (typeof window === 'undefined') return;
 
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioCtx) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
 
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      audioCtxRef.current = new AudioCtx();
-    }
-    const ctx = audioCtxRef.current;
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-
-    if (soundNodesRef.current) {
-      soundNodesRef.current.stop();
-      soundNodesRef.current = null;
-    }
-
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(isMuted ? 0 : volume, ctx.currentTime);
-    masterGain.connect(ctx.destination);
-
-    let activeInterval: any = null;
-    const activeNodes: any[] = [];
-
-    if (activeSoundscape === 'rain') {
-      // Gentle Rain: Filtered Pink Noise
-      const bufferSize = ctx.sampleRate * 2;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.96900 * b2 + white * 0.1538520;
-        b3 = 0.86650 * b3 + white * 0.3104856;
-        b4 = 0.55000 * b4 + white * 0.5329522;
-        b5 = -0.7616 * b5 - white * 0.0168980;
-        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-        output[i] *= 0.11;
-        b6 = white * 0.115926;
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        audioCtxRef.current = new AudioCtx();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
       }
 
-      const whiteNoise = ctx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(1000, ctx.currentTime);
-
-      whiteNoise.connect(filter);
-      filter.connect(masterGain);
-      whiteNoise.start();
-      activeNodes.push(whiteNoise);
-
-    } else if (activeSoundscape === 'ocean') {
-      // Ocean Waves: Lowpass Noise + Slow LFO Tides Modulation
-      const bufferSize = ctx.sampleRate * 4;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = (Math.random() * 2 - 1) * 0.15;
+      if (soundNodesRef.current) {
+        try { soundNodesRef.current.stop(); } catch {}
+        soundNodesRef.current = null;
       }
 
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuffer;
-      noise.loop = true;
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(isMuted ? 0 : volume, ctx.currentTime);
+      masterGain.connect(ctx.destination);
+      masterGainRef.current = masterGain;
 
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(350, ctx.currentTime);
+      let activeInterval: any = null;
+      const activeNodes: any[] = [];
 
-      const waveGain = ctx.createGain();
-      waveGain.gain.setValueAtTime(0.2, ctx.currentTime);
+      if (activeSoundscape === 'rain') {
+        // Gentle Rain: Filtered Pink Noise
+        const bufferSize = ctx.sampleRate * 2;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+          output[i] *= 0.11;
+          b6 = white * 0.115926;
+        }
 
-      const lfo = ctx.createOscillator();
-      lfo.frequency.setValueAtTime(0.12, ctx.currentTime);
+        const whiteNoise = ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
 
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.setValueAtTime(0.25, ctx.currentTime);
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1000, ctx.currentTime);
 
-      lfo.connect(lfoGain);
-      lfoGain.connect(waveGain.gain);
+        whiteNoise.connect(filter);
+        filter.connect(masterGain);
+        whiteNoise.start();
+        activeNodes.push(whiteNoise);
 
-      noise.connect(filter);
-      filter.connect(waveGain);
-      waveGain.connect(masterGain);
+      } else if (activeSoundscape === 'ocean') {
+        // Ocean Waves: Lowpass Noise + Slow LFO Tides Modulation
+        const bufferSize = ctx.sampleRate * 4;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = (Math.random() * 2 - 1) * 0.15;
+        }
 
-      noise.start();
-      lfo.start();
-      activeNodes.push(noise, lfo);
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
 
-    } else if (activeSoundscape === 'forest') {
-      // Forest Breeze: Bandpass Wind + Periodic Bell Chimes
-      const bufferSize = ctx.sampleRate * 2;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = (Math.random() * 2 - 1) * 0.08;
-      }
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(350, ctx.currentTime);
 
-      const noise = ctx.createBufferSource();
-      noise.buffer = noiseBuffer;
-      noise.loop = true;
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(600, ctx.currentTime);
-      filter.Q.setValueAtTime(1.5, ctx.currentTime);
-
-      noise.connect(filter);
-      filter.connect(masterGain);
-      noise.start();
-      activeNodes.push(noise);
-
-      activeInterval = setInterval(() => {
-        if (!ctx || ctx.state === 'closed') return;
-        const chimeFreqs = [528, 639, 741, 852, 963];
-        const freq = chimeFreqs[Math.floor(Math.random() * chimeFreqs.length)];
-        const osc = ctx.createOscillator();
-        const noteGain = ctx.createGain();
-        
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        noteGain.gain.setValueAtTime(0.04, ctx.currentTime);
-        noteGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3);
-
-        osc.connect(noteGain);
-        noteGain.connect(masterGain);
-        osc.start();
-        osc.stop(ctx.currentTime + 3);
-      }, 4500);
-
-    } else if (activeSoundscape === 'focus') {
-      // Deep Meditation: 432Hz Harmonic Warm Drone
-      const freqs = [108, 216, 432];
-      freqs.forEach((freq) => {
-        const osc = ctx.createOscillator();
-        const noteGain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        noteGain.gain.setValueAtTime(0.08 / freqs.length, ctx.currentTime);
+        const waveGain = ctx.createGain();
+        waveGain.gain.setValueAtTime(0.2, ctx.currentTime);
 
         const lfo = ctx.createOscillator();
-        lfo.frequency.setValueAtTime(0.2, ctx.currentTime);
+        lfo.frequency.setValueAtTime(0.12, ctx.currentTime);
+
         const lfoGain = ctx.createGain();
-        lfoGain.gain.setValueAtTime(0.02, ctx.currentTime);
+        lfoGain.gain.setValueAtTime(0.25, ctx.currentTime);
 
         lfo.connect(lfoGain);
-        lfoGain.connect(noteGain.gain);
+        lfoGain.connect(waveGain.gain);
 
-        osc.connect(noteGain);
-        noteGain.connect(masterGain);
+        noise.connect(filter);
+        filter.connect(waveGain);
+        waveGain.connect(masterGain);
 
-        osc.start();
+        noise.start();
         lfo.start();
-        activeNodes.push(osc, lfo);
-      });
-    }
+        activeNodes.push(noise, lfo);
 
-    soundNodesRef.current = {
-      stop: () => {
-        if (activeInterval) clearInterval(activeInterval);
-        activeNodes.forEach(node => {
-          try { node.stop(); } catch {}
+      } else if (activeSoundscape === 'forest') {
+        // Forest Breeze: Bandpass Wind + Periodic Bell Chimes
+        const bufferSize = ctx.sampleRate * 2;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = (Math.random() * 2 - 1) * 0.08;
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(600, ctx.currentTime);
+        filter.Q.setValueAtTime(1.5, ctx.currentTime);
+
+        noise.connect(filter);
+        filter.connect(masterGain);
+        noise.start();
+        activeNodes.push(noise);
+
+        activeInterval = setInterval(() => {
+          try {
+            if (!ctx || ctx.state === 'closed') return;
+            const chimeFreqs = [528, 639, 741, 852, 963];
+            const freq = chimeFreqs[Math.floor(Math.random() * chimeFreqs.length)];
+            const osc = ctx.createOscillator();
+            const noteGain = ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            noteGain.gain.setValueAtTime(0.04, ctx.currentTime);
+            noteGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3);
+
+            osc.connect(noteGain);
+            noteGain.connect(masterGain);
+            osc.start();
+            osc.stop(ctx.currentTime + 3);
+          } catch {}
+        }, 4500);
+
+      } else if (activeSoundscape === 'focus') {
+        // Deep Meditation: 432Hz Harmonic Warm Drone
+        const freqs = [108, 216, 432];
+        freqs.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          const noteGain = ctx.createGain();
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          noteGain.gain.setValueAtTime(0.08 / freqs.length, ctx.currentTime);
+
+          const lfo = ctx.createOscillator();
+          lfo.frequency.setValueAtTime(0.2, ctx.currentTime);
+          const lfoGain = ctx.createGain();
+          lfoGain.gain.setValueAtTime(0.02, ctx.currentTime);
+
+          lfo.connect(lfoGain);
+          lfoGain.connect(noteGain.gain);
+
+          osc.connect(noteGain);
+          noteGain.connect(masterGain);
+
+          osc.start();
+          lfo.start();
+          activeNodes.push(osc, lfo);
         });
-        try { masterGain.disconnect(); } catch {}
       }
-    };
+
+      soundNodesRef.current = {
+        stop: () => {
+          if (activeInterval) clearInterval(activeInterval);
+          activeNodes.forEach(node => {
+            try { node.stop(); } catch {}
+          });
+          try { masterGain.disconnect(); } catch {}
+        }
+      };
+    } catch {
+      // Gracefully ignore audio errors to prevent any UI crash
+    }
 
     return () => {
       if (soundNodesRef.current) {
-        soundNodesRef.current.stop();
+        try { soundNodesRef.current.stop(); } catch {}
         soundNodesRef.current = null;
       }
     };
-  }, [activeSoundscape, isMuted, volume]);
+  }, [activeSoundscape]);
 
   const [moodParticles, setMoodParticles] = useState<Array<{
     id: number;
