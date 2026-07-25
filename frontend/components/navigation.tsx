@@ -9,11 +9,12 @@ import { useAuth } from '@/lib/auth-context';
 
 const navItems = [
   { icon: Home, label: 'Dashboard', href: '/dashboard' },
+  { icon: Shield, label: 'Admin Portal', href: '/admin' },
   { icon: PenTool, label: 'New Entry', href: '/journal/new' },
   { icon: BookOpen, label: 'My Entries', href: '/journal' },
   { icon: Heart, label: 'Gratitude', href: '/gratitude' },
   { icon: Sparkles, label: 'Manifestation', href: '/manifestation' },
-  { icon: Brain, label: 'AI Chat', href: '/ai-chat' },
+  { icon: Brain, label: 'Wellness Coach', href: '/ai-chat' },
   { icon: BarChart3, label: 'Reports', href: '/reports' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ];
@@ -33,10 +34,11 @@ export function Navigation() {
     { icon: Home, label: 'Home', href: '/dashboard' },
     { icon: BookOpen, label: 'Entries', href: '/journal' },
     { icon: PenTool, label: 'New', href: '/journal/new', isFloating: true },
-    { icon: Brain, label: 'AI Chat', href: '/ai-chat' },
+    { icon: Brain, label: 'Wellness Coach', href: '/ai-chat' },
   ];
 
   const mobileMoreItems = [
+    { icon: Shield, label: 'Admin Portal', href: '/admin' },
     { icon: Heart, label: 'Gratitude', href: '/gratitude' },
     { icon: Sparkles, label: 'Manifestation', href: '/manifestation' },
     { icon: BarChart3, label: 'Reports', href: '/reports' },

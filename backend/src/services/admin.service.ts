@@ -95,6 +95,46 @@ export const adminService = {
     return prisma.announcement.findMany({ orderBy: { createdAt: 'desc' } });
   },
 
+  async listAllEntries(query: { page?: number; limit?: number; search?: string; mood?: string }) {
+    const pagination = parsePagination(query);
+    const where: any = { deletedAt: null };
+
+    if (query.mood) {
+      where.mood = query.mood;
+    }
+
+    if (query.search) {
+      where.OR = [
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { content: { contains: query.search, mode: 'insensitive' } },
+        { user: { name: { contains: query.search, mode: 'insensitive' } } },
+        { user: { email: { contains: query.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [items, totalItems] = await Promise.all([
+      prisma.journalEntry.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
+          },
+        },
+      }),
+      prisma.journalEntry.count({ where }),
+    ]);
+
+    return buildPaginatedResult(items, totalItems, pagination);
+  },
+
   createAnnouncement(data: { title: string; body: string; isPublished?: boolean }) {
     return prisma.announcement.create({
       data: { ...data, publishedAt: data.isPublished ? new Date() : null },

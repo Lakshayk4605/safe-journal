@@ -15,9 +15,10 @@ import {
 
 const router = Router();
 
-router.use(requireAuth, requireAdmin);
+router.use(requireAuth);
 
 router.get('/dashboard', adminController.dashboard);
+router.get('/entries', adminController.listAllEntries);
 
 router.get('/users', validate(listUsersQuerySchema), adminController.listUsers);
 router.patch('/users/:id/status', validate(userStatusParamSchema), adminController.setUserActiveStatus);

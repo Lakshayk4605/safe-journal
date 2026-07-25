@@ -60,5 +60,10 @@ export const adminController = {
     const announcement = await adminService.createAnnouncement(req.body);
     sendSuccess(res, 201, 'Announcement created', { announcement });
   }),
+
+  listAllEntries: asyncHandler(async (req: Request, res: Response) => {
+    const result = await adminService.listAllEntries(req.query as any);
+    sendSuccess(res, 200, 'All journal entries fetched for admin', result.items, result.meta);
+  }),
 };
 
