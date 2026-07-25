@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { MoodBadge } from '@/components/ui/mood-badge';
 import { inspirationalQuotes } from '@/lib/mock-data';
-import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote, Heart, Bookmark, Edit3, Check, Plus, Trash2, Star, Shield, Sun, Moon, Sunrise, ArrowRight, Activity, Smile } from 'lucide-react';
+import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote, Heart, Bookmark, Edit3, Check, Plus, Trash2, Star, Shield, Sun, Moon, Sunrise, ArrowRight, Activity, Smile, Volume2, VolumeX, RefreshCw, Compass } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
@@ -54,6 +54,13 @@ const MOOD_BUTTONS = [
   { emoji: '🌟', mood: 'EXCELLENT', score: 5, label: 'Excellent', color: '#22c55e', gradient: 'from-emerald-500/20 to-teal-500/10' },
 ];
 
+const ZEN_SOUNDSCAPES = [
+  { id: 'rain', name: 'Gentle Rain 🌧️', icon: '🌧️' },
+  { id: 'ocean', name: 'Ocean Waves 🌊', icon: '🌊' },
+  { id: 'forest', name: 'Forest Breeze 🌲', icon: '🌲' },
+  { id: 'focus', name: 'Deep Meditation 🧘', icon: '🧘' }
+];
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -62,6 +69,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [showStreakModal, setShowStreakModal] = useState(false);
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [activeSoundscape, setActiveSoundscape] = useState<string | null>(null);
+
   const [moodParticles, setMoodParticles] = useState<Array<{
     id: number;
     x: number;
@@ -71,7 +81,6 @@ export default function DashboardPage() {
     size: number;
   }>>([]);
   const [greeting, setGreeting] = useState('Welcome back');
-  const [greetingIcon, setGreetingIcon] = useState<'sun' | 'sunrise' | 'moon'>('sun');
 
   // Sticky Notes States
   const [stickyNotes, setStickyNotes] = useState<StickyNote[]>([]);
@@ -94,13 +103,10 @@ export default function DashboardPage() {
     const hours = new Date().getHours();
     if (hours < 12) {
       setGreeting('Good Morning 🌅');
-      setGreetingIcon('sunrise');
     } else if (hours < 17) {
       setGreeting('Good Afternoon ☀️');
-      setGreetingIcon('sun');
     } else {
       setGreeting('Good Evening 🌌');
-      setGreetingIcon('moon');
     }
 
     (async () => {
@@ -286,29 +292,26 @@ export default function DashboardPage() {
 
   if (!mounted || !user) return null;
 
-  const todayEntry = entries[0];
-  const recentEntries = entries.slice(1, 4);
-
   return (
     <div className="relative min-h-screen p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto overflow-hidden">
       {/* Ambient Aurora Glow Background Orbs */}
-      <div className="absolute top-10 left-1/4 w-96 h-96 rounded-full bg-gradient-to-tr from-emerald-500/15 via-teal-500/15 to-cyan-500/10 blur-3xl pointer-events-none animate-aurora-float" />
-      <div className="absolute top-1/3 right-10 w-96 h-96 rounded-full bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-rose-500/10 blur-3xl pointer-events-none animate-aurora-float-delayed" />
+      <div className="absolute top-10 left-1/4 w-96 h-96 rounded-full bg-gradient-to-tr from-emerald-500/20 via-teal-500/20 to-cyan-500/15 blur-3xl pointer-events-none animate-aurora-float" />
+      <div className="absolute top-1/3 right-10 w-96 h-96 rounded-full bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-rose-500/15 blur-3xl pointer-events-none animate-aurora-float-delayed" />
 
       {/* Hero Sanctuary Banner */}
-      <div className="relative rounded-3xl p-6 md:p-10 border border-white/40 dark:border-white/10 glass-card-sanctuary shadow-2xl overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-amber-400/20 via-rose-500/15 to-transparent rounded-full blur-2xl pointer-events-none animate-pulse" />
+      <div className="relative rounded-3xl p-6 md:p-10 border border-teal-500/30 glass-card-sanctuary shadow-2xl overflow-hidden glow-card-teal">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-400/20 via-rose-500/20 to-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 backdrop-blur-md">
-              <Sparkles className="w-3.5 h-3.5 animate-spin duration-3000" />
-              <span>Personal Wellness Sanctuary</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-extrabold bg-gradient-to-r from-teal-500/15 to-primary/15 text-teal-600 dark:text-teal-400 border border-teal-500/30 backdrop-blur-md shadow-sm">
+              <Sparkles className="w-4 h-4 text-teal-500 animate-spin duration-3000" />
+              <span>Personal Mind & Soul Sanctuary</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             </div>
 
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground font-serif">
-              {greeting}, <span className="bg-gradient-to-r from-teal-600 via-primary to-indigo-600 bg-clip-text text-transparent">{user.name}!</span>
+              {greeting}, <span className="bg-gradient-to-r from-teal-500 via-primary to-amber-500 bg-clip-text text-transparent">{user.name}!</span>
             </h1>
 
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
@@ -317,39 +320,39 @@ export default function DashboardPage() {
 
             {/* Quick Access Badges */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 border border-border/60 text-xs font-semibold text-foreground">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/80 border border-border/80 text-xs font-bold text-foreground shadow-sm">
                 <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
                 <span>{user.streakDays} Day Streak</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 border border-border/60 text-xs font-semibold text-foreground">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/80 border border-border/80 text-xs font-bold text-foreground shadow-sm">
                 <BookOpen className="w-4 h-4 text-teal-600" />
                 <span>{user.totalEntries} Memories Saved</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 border border-border/60 text-xs font-semibold text-foreground">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/80 border border-border/80 text-xs font-bold text-foreground shadow-sm">
                 <Shield className="w-4 h-4 text-emerald-600" />
-                <span>Sigmund Freud Counselor Ready</span>
+                <span>Sigmund Freud Counselor Active</span>
               </div>
             </div>
           </div>
 
           {/* Quick Primary Actions Floating Glass Box */}
-          <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 min-w-[240px]">
+          <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3.5 min-w-[260px]">
             <Link href="/journal/new" className="w-full">
-              <Button className="w-full h-12 bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-primary/90 text-white font-bold rounded-2xl shadow-lg hover:shadow-teal-500/25 transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
+              <Button className="w-full h-12 bg-gradient-to-r from-teal-600 via-primary to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-extrabold rounded-2xl shadow-xl hover:shadow-teal-500/30 transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
                 <PenTool className="w-4 h-4" />
                 <span>Write Journal Entry</span>
               </Button>
             </Link>
 
             <Link href="/journal/voice" className="w-full">
-              <Button variant="outline" className="w-full h-12 border-primary/30 hover:border-primary text-foreground font-semibold rounded-2xl backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
+              <Button variant="outline" className="w-full h-12 border-teal-500/40 hover:border-teal-500 text-foreground font-bold rounded-2xl backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer bg-card/60">
                 <MessageSquare className="w-4 h-4 text-teal-600" />
                 <span>Voice Sanctuary</span>
               </Button>
             </Link>
 
             <Link href="/ai-chat" className="w-full">
-              <Button variant="secondary" className="w-full h-11 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer">
+              <Button variant="secondary" className="w-full h-11 bg-primary/10 hover:bg-primary/20 text-primary font-extrabold rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 gap-2 cursor-pointer border border-primary/20">
                 <Sparkles className="w-4 h-4" />
                 <span>AI Counselor Chat</span>
               </Button>
@@ -358,33 +361,92 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Zen Ambient Soundscape Player Bar */}
+      <div className="glass-card-sanctuary border border-border/60 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-600 flex items-center justify-center font-bold">
+            <Volume2 className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h4 className="font-bold text-xs text-foreground">Zen Sanctuary Soundscapes</h4>
+            <p className="text-[11px] text-muted-foreground">Select background audio for relaxation & deep focus</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {ZEN_SOUNDSCAPES.map((sound) => {
+            const isActive = activeSoundscape === sound.id;
+            return (
+              <button
+                key={sound.id}
+                onClick={() => setActiveSoundscape(isActive ? null : sound.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 scale-105'
+                    : 'bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground border border-border/40'
+                }`}
+              >
+                <span>{sound.icon}</span>
+                <span>{sound.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Main Grid Section */}
       <div className="grid lg:grid-cols-3 gap-8 relative z-10">
         {/* Left Column (2/3 width) - Guided Reflections, Notes & Feed */}
         <div className="lg:col-span-2 space-y-8">
 
-          {/* Daily Wisdom Card (Premium Quote Glass Highlight) */}
-          <div className="relative overflow-hidden rounded-3xl p-6 md:p-8 glass-card-sanctuary border border-amber-500/20 shadow-xl group">
-            <Quote className="absolute right-6 bottom-4 w-32 h-32 text-amber-500/10 pointer-events-none transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700" />
-            
-            <div className="relative z-10 flex flex-col items-center text-center space-y-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 fill-amber-500/20 animate-pulse" />
-                Daily Wisdom Reflection
-              </span>
-              
-              <blockquote className="text-xl md:text-3xl font-serif font-extrabold italic bg-gradient-to-r from-foreground via-foreground to-amber-600 bg-clip-text text-transparent tracking-wide leading-relaxed text-balance">
-                &ldquo;{quote}&rdquo;
-              </blockquote>
-              
-              <div className="w-16 h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent rounded-full" />
+          {/* Interactive 3D Flip Affirmation Fortune Card */}
+          <div className="perspective-1000">
+            <div
+              onClick={() => setIsCardFlipped(!isCardFlipped)}
+              className={`relative rounded-3xl p-6 md:p-8 cursor-pointer transition-all duration-700 preserve-3d glass-card-sanctuary border border-amber-500/30 shadow-xl glow-card-amber ${
+                isCardFlipped ? 'rotate-y-180 bg-gradient-to-br from-amber-500/10 via-amber-600/10 to-teal-500/10' : 'hover:scale-[1.01]'
+              }`}
+            >
+              {!isCardFlipped ? (
+                /* Front Side */
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-600 border border-amber-500/30 uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 fill-amber-500/20 animate-pulse" />
+                    Daily Fortune Affirmation (Tap to Flip ✨)
+                  </div>
+                  
+                  <blockquote className="text-xl md:text-2xl font-serif font-extrabold italic text-foreground tracking-wide leading-relaxed">
+                    &ldquo;{quote}&rdquo;
+                  </blockquote>
+
+                  <p className="text-[11px] text-amber-600 font-bold uppercase tracking-widest pt-2">
+                    Click card to reveal your personal daily manifestation &rarr;
+                  </p>
+                </div>
+              ) : (
+                /* Back Side (Flipped) */
+                <div className="flex flex-col items-center text-center space-y-4 rotate-y-180">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-teal-500/15 text-teal-600 border border-teal-500/30 uppercase tracking-wider">
+                    <Compass className="w-3.5 h-3.5 text-teal-500" />
+                    Your Daily Manifestation Guidance
+                  </div>
+
+                  <p className="text-lg md:text-xl font-bold text-foreground leading-relaxed font-serif">
+                    &quot;I release all doubt and embrace unconditional self-love, peace, and abundance today.&quot;
+                  </p>
+
+                  <p className="text-[11px] text-teal-600 font-bold uppercase tracking-widest pt-2">
+                    Tap to flip back &larr;
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Guided Reflection Prompt Card */}
-          <div className="glass-card-sanctuary border border-teal-500/20 rounded-3xl p-6 md:p-8 space-y-4 hover:border-teal-500/40 transition-all duration-300 shadow-lg">
+          <div className="glass-card-sanctuary border border-teal-500/30 rounded-3xl p-6 md:p-8 space-y-4 hover:border-teal-500/50 transition-all duration-300 shadow-xl glow-card-teal">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-teal-600 dark:text-teal-400 flex items-center gap-2 text-sm">
+              <h3 className="font-extrabold text-teal-600 dark:text-teal-400 flex items-center gap-2 text-sm">
                 <Sparkles className="w-4 h-4 text-teal-500" />
                 Guided Reflection Prompt
               </h3>
@@ -392,9 +454,10 @@ export default function DashboardPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleNextPrompt}
-                className="text-xs text-muted-foreground hover:text-foreground border-border rounded-xl cursor-pointer"
+                className="text-xs text-muted-foreground hover:text-foreground border-border rounded-xl cursor-pointer gap-1.5"
               >
-                Refresh Prompt
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Refresh</span>
               </Button>
             </div>
 
@@ -404,7 +467,7 @@ export default function DashboardPage() {
 
             <div className="pt-2">
               <Link href={`/journal/new?prompt=${encodeURIComponent(currentPrompt)}`}>
-                <Button size="sm" className="bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-primary/90 text-white font-bold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer gap-2">
+                <Button size="sm" className="bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-primary/90 text-white font-extrabold rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer gap-2">
                   <span>Write Entry with this Prompt</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -858,3 +921,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
