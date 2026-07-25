@@ -503,41 +503,102 @@ export default function ManifestationPage() {
               </div>
             </div>
 
-            {/* Manifest Water Bottle Card */}
-            <div className="glass-card-sanctuary border border-teal-500/30 rounded-3xl p-6 flex flex-col items-center justify-between min-h-[460px] relative overflow-hidden shadow-xl glow-card-teal">
-              <div className="text-center space-y-1">
-                <h3 className="font-bold text-base text-foreground flex items-center justify-center gap-2">
-                  <Sparkles className="w-5 h-5 text-teal-500" />
+            {/* 3D Glass Crystal Elixir Flask Card */}
+            <div className="glass-card-sanctuary border border-teal-500/40 rounded-3xl p-6 flex flex-col items-center justify-between min-h-[500px] relative overflow-hidden shadow-2xl glow-card-teal">
+              {/* Background Glow */}
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-teal-500/15 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-purple-500/15 blur-3xl pointer-events-none" />
+
+              <div className="text-center space-y-1.5 z-10">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30 uppercase tracking-widest">
+                  <Sparkles className="w-3.5 h-3.5 text-teal-400 animate-spin" />
+                  <span>Crystal Elixir Flask</span>
+                </div>
+                <h3 className="font-extrabold text-lg text-foreground font-serif flex items-center justify-center gap-2">
                   Intention Charged Water
                 </h3>
-                <p className="text-xs text-muted-foreground font-medium">Charge your water with intention and take mindful sips</p>
+                <p className="text-xs text-muted-foreground font-medium">Internalize your goals with mindful sips</p>
               </div>
 
-              {/* Water Bottle Graphic */}
-              <div className={`relative w-28 h-52 my-4 flex items-center justify-center transition-all duration-500 ${
+              {/* 4-Step Hydration Level Drops Track */}
+              <div className="flex items-center gap-2 py-2 z-10">
+                {[1, 2, 3, 4].map((step) => {
+                  const isFilled = sipCount < step;
+                  return (
+                    <div
+                      key={step}
+                      className={`w-7 h-7 rounded-xl border flex items-center justify-center text-xs transition-all duration-500 ${
+                        isFilled
+                          ? 'bg-gradient-to-tr from-teal-500 to-cyan-400 border-teal-300 text-white shadow-md shadow-teal-500/30 scale-105'
+                          : 'bg-muted/40 border-border/50 text-muted-foreground opacity-40'
+                      }`}
+                      title={`Sip ${step}`}
+                    >
+                      💧
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Ultra-Realistic 3D Glass Crystal Flask Container */}
+              <div className={`relative w-36 h-60 my-2 flex items-center justify-center select-none transition-all duration-700 ${
                 isDrinking ? 'animate-bottle-drink' : 'hover:scale-105'
               }`}>
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-4 bg-purple-500 rounded-t-md border border-purple-400/50 shadow z-20" />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-6 border-2 border-b-0 border-white/20 bg-white/5 rounded-t-sm z-10" />
+                {/* Metallic Rose Gold / Amber Cap */}
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-5 bg-gradient-to-r from-amber-400 via-amber-200 to-yellow-500 rounded-t-lg border border-amber-300/80 shadow-md z-30 flex items-center justify-center">
+                  <div className="w-6 h-1 bg-amber-600/40 rounded-full" />
+                </div>
                 
-                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent border-2 border-white/20 rounded-[28px] shadow-inner overflow-hidden flex flex-col justify-end">
+                {/* Glass Rim Collar */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-6 border-2 border-b-0 border-white/40 bg-white/10 rounded-t-sm z-20 backdrop-blur-sm" />
+
+                {/* Glass Bottle Body Sheen */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent border-2 border-white/30 rounded-[36px] shadow-2xl shadow-teal-500/10 overflow-hidden flex flex-col justify-end z-10 backdrop-blur-[2px]">
+                  
+                  {/* Glass Reflection Glare Streak (Left) */}
+                  <div className="absolute top-4 left-2.5 w-2 h-48 bg-gradient-to-b from-white/40 via-white/15 to-transparent rounded-full z-30 pointer-events-none" />
+
+                  {/* Etched Glass Volume Level Indicators (Right) */}
+                  <div className="absolute right-2 top-8 bottom-8 flex flex-col justify-between items-end text-[8px] font-extrabold text-white/40 z-30 pointer-events-none">
+                    <span className="border-b border-white/30 pr-1">100%</span>
+                    <span className="border-b border-white/30 pr-1">75%</span>
+                    <span className="border-b border-white/30 pr-1">50%</span>
+                    <span className="border-b border-white/30 pr-1">25%</span>
+                  </div>
+
+                  {/* Floating Intention Bubble Banner */}
                   {todayEntry && sipCount < 4 && (
-                    <div className="absolute inset-x-2 top-8 text-[9px] font-bold text-purple-400 bg-purple-500/15 border border-purple-500/30 px-2 py-1.5 rounded-xl text-center leading-tight animate-bounce z-20 pointer-events-none line-clamp-3">
-                      {todayEntry.intention}
+                    <div className="absolute inset-x-3 top-6 text-[10px] font-extrabold text-teal-200 bg-teal-950/80 border border-teal-400/50 px-2.5 py-1.5 rounded-2xl text-center leading-tight animate-bounce z-40 shadow-lg line-clamp-2 backdrop-blur-md">
+                      ✨ {todayEntry.intention}
                     </div>
                   )}
 
+                  {/* Fluid Liquid Chamber */}
                   <div 
-                    className="w-full bg-gradient-to-t from-purple-500/50 via-pink-400/40 to-cyan-400/35 relative transition-all duration-1000 overflow-hidden"
+                    className="w-full bg-gradient-to-t from-purple-700/80 via-pink-600/65 via-teal-500/60 to-cyan-400/55 relative transition-all duration-1000 overflow-hidden"
                     style={{ height: `${100 - (sipCount * 25)}%` }}
                   >
-                    <div className="absolute inset-x-0 bottom-0 top-1/2 bg-cyan-400/15 blur-xl animate-pulse" />
+                    {/* Glowing Core inside Water */}
+                    <div className="absolute inset-x-0 bottom-0 top-1/3 bg-teal-300/25 blur-2xl animate-pulse" />
                     
+                    {/* Floating Amethyst Gem inside Water */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-purple-300 animate-crystal-float pointer-events-none opacity-80">
+                      💎
+                    </div>
+
+                    {/* Fluid Wave SVG Animation at top of water */}
+                    <div className="absolute -top-3 inset-x-0 h-6 overflow-hidden pointer-events-none">
+                      <svg className="w-[200%] h-full animate-liquid-wave fill-cyan-300/40" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                        <path d="M0,0 C150,90 350,-40 500,50 C650,140 900,10 1200,40 L1200,120 L0,120 Z" />
+                      </svg>
+                    </div>
+
+                    {/* Micro-sparkle Energy Particles */}
                     {bubblePositions.map((bubble, i) => (
                       <div
                         key={i}
-                        className={`absolute rounded-full bg-white/40 ${
-                          isDrinking ? 'animate-ping duration-[0.5s]' : 'animate-bounce'
+                        className={`absolute rounded-full bg-white/60 shadow-sm shadow-white ${
+                          isDrinking ? 'animate-ping duration-500' : 'animate-bounce'
                         }`}
                         style={{
                           width: `${bubble.size}px`,
@@ -549,8 +610,6 @@ export default function ManifestationPage() {
                         }}
                       />
                     ))}
-
-                    <div className="absolute top-0 inset-x-0 h-1.5 bg-white/40 rounded-full animate-wave" />
                   </div>
                 </div>
               </div>
@@ -564,31 +623,32 @@ export default function ManifestationPage() {
                         <Button 
                           onClick={handleTakeSip}
                           disabled={isDrinking}
-                          className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-extrabold py-4 rounded-2xl cursor-pointer shadow-md select-none transition-all active:scale-95"
+                          className="w-full bg-gradient-to-r from-teal-500 via-cyan-600 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-extrabold py-4 rounded-2xl cursor-pointer shadow-lg shadow-teal-500/25 select-none transition-all active:scale-95 gap-2"
                         >
-                          Take a Mindful Sip ({100 - (sipCount * 25)}% full)
+                          <Sparkles className="w-4 h-4 text-cyan-200 fill-cyan-200" />
+                          <span>Take Mindful Sip ({100 - (sipCount * 25)}% Charged)</span>
                         </Button>
-                        <p className="text-[11px] text-muted-foreground px-2 leading-relaxed">
-                          Sip mindfully while internalizing today&apos;s intention.
+                        <p className="text-[11px] text-muted-foreground px-2 leading-relaxed font-medium">
+                          Internalize your intention as you sip from your elixir flask.
                         </p>
                       </>
                     ) : (
                       <>
                         <Button 
                           onClick={handleRefillBottle}
-                          className="w-full bg-secondary hover:bg-secondary/90 text-white font-extrabold py-4 rounded-2xl cursor-pointer shadow-md select-none transition-all active:scale-95"
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-extrabold py-4 rounded-2xl cursor-pointer shadow-lg shadow-purple-500/25 select-none transition-all active:scale-95"
                         >
-                          Refill Intention Bottle 💧
+                          Refill Intention Flask 💧
                         </Button>
-                        <p className="text-[11px] text-emerald-500 font-extrabold px-2 leading-relaxed animate-pulse">
-                          Manifestation successfully integrated. Bottle empty.
+                        <p className="text-[11px] text-emerald-400 font-extrabold px-2 leading-relaxed animate-pulse">
+                          Manifestation integrated into every cell. Flask empty!
                         </p>
                       </>
                     )}
                   </>
                 ) : (
-                  <div className="p-3 bg-muted/40 border border-border/40 rounded-2xl text-xs text-muted-foreground leading-normal font-medium">
-                    Lock in today&apos;s intention above to fill your Manifestation Water Bottle!
+                  <div className="p-4 bg-card/80 border border-teal-500/30 rounded-2xl text-xs text-foreground leading-normal font-semibold shadow-inner">
+                    ✨ Lock in today&apos;s intention above to charge your Crystal Hydration Flask!
                   </div>
                 )}
               </div>
