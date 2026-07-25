@@ -9,13 +9,13 @@ import { useAuth } from '@/lib/auth-context';
 
 const navItems = [
   { icon: Home, label: 'Dashboard', href: '/dashboard' },
-  { icon: Shield, label: 'Admin Portal', href: '/admin' },
   { icon: PenTool, label: 'New Entry', href: '/journal/new' },
   { icon: BookOpen, label: 'My Entries', href: '/journal' },
   { icon: Heart, label: 'Gratitude', href: '/gratitude' },
   { icon: Sparkles, label: 'Manifestation', href: '/manifestation' },
   { icon: Brain, label: 'Wellness Coach', href: '/ai-chat' },
   { icon: BarChart3, label: 'Reports', href: '/reports' },
+  { icon: Shield, label: 'Admin Portal', href: '/admin' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ];
 
@@ -38,7 +38,6 @@ export function Navigation() {
   ];
 
   const mobileMoreItems = [
-    { icon: Shield, label: 'Admin Portal', href: '/admin' },
     { icon: Heart, label: 'Gratitude', href: '/gratitude' },
     { icon: Sparkles, label: 'Manifestation', href: '/manifestation' },
     { icon: BarChart3, label: 'Reports', href: '/reports' },
