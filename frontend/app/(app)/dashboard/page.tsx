@@ -71,6 +71,202 @@ export default function DashboardPage() {
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [activeSoundscape, setActiveSoundscape] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.6);
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const soundNodesRef = useRef<{ stop: () => void } | null>(null);
+
+  // Web Audio API Ambient Soundscape Synthesizer
+  useEffect(() => {
+    if (!activeSoundscape) {
+      if (soundNodesRef.current) {
+        soundNodesRef.current.stop();
+        soundNodesRef.current = null;
+      }
+      return;
+    }
+
+    if (typeof window === 'undefined') return;
+
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+      audioCtxRef.current = new AudioCtx();
+    }
+    const ctx = audioCtxRef.current;
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    if (soundNodesRef.current) {
+      soundNodesRef.current.stop();
+      soundNodesRef.current = null;
+    }
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(isMuted ? 0 : volume, ctx.currentTime);
+    masterGain.connect(ctx.destination);
+
+    let activeInterval: any = null;
+    const activeNodes: any[] = [];
+
+    if (activeSoundscape === 'rain') {
+      // Gentle Rain: Filtered Pink Noise
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        output[i] *= 0.11;
+        b6 = white * 0.115926;
+      }
+
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1000, ctx.currentTime);
+
+      whiteNoise.connect(filter);
+      filter.connect(masterGain);
+      whiteNoise.start();
+      activeNodes.push(whiteNoise);
+
+    } else if (activeSoundscape === 'ocean') {
+      // Ocean Waves: Lowpass Noise + Slow LFO Tides Modulation
+      const bufferSize = ctx.sampleRate * 4;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.15;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(350, ctx.currentTime);
+
+      const waveGain = ctx.createGain();
+      waveGain.gain.setValueAtTime(0.2, ctx.currentTime);
+
+      const lfo = ctx.createOscillator();
+      lfo.frequency.setValueAtTime(0.12, ctx.currentTime);
+
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(0.25, ctx.currentTime);
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(waveGain.gain);
+
+      noise.connect(filter);
+      filter.connect(waveGain);
+      waveGain.connect(masterGain);
+
+      noise.start();
+      lfo.start();
+      activeNodes.push(noise, lfo);
+
+    } else if (activeSoundscape === 'forest') {
+      // Forest Breeze: Bandpass Wind + Periodic Bell Chimes
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.08;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      noise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(600, ctx.currentTime);
+      filter.Q.setValueAtTime(1.5, ctx.currentTime);
+
+      noise.connect(filter);
+      filter.connect(masterGain);
+      noise.start();
+      activeNodes.push(noise);
+
+      activeInterval = setInterval(() => {
+        if (!ctx || ctx.state === 'closed') return;
+        const chimeFreqs = [528, 639, 741, 852, 963];
+        const freq = chimeFreqs[Math.floor(Math.random() * chimeFreqs.length)];
+        const osc = ctx.createOscillator();
+        const noteGain = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        noteGain.gain.setValueAtTime(0.04, ctx.currentTime);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3);
+
+        osc.connect(noteGain);
+        noteGain.connect(masterGain);
+        osc.start();
+        osc.stop(ctx.currentTime + 3);
+      }, 4500);
+
+    } else if (activeSoundscape === 'focus') {
+      // Deep Meditation: 432Hz Harmonic Warm Drone
+      const freqs = [108, 216, 432];
+      freqs.forEach((freq) => {
+        const osc = ctx.createOscillator();
+        const noteGain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        noteGain.gain.setValueAtTime(0.08 / freqs.length, ctx.currentTime);
+
+        const lfo = ctx.createOscillator();
+        lfo.frequency.setValueAtTime(0.2, ctx.currentTime);
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.setValueAtTime(0.02, ctx.currentTime);
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(noteGain.gain);
+
+        osc.connect(noteGain);
+        noteGain.connect(masterGain);
+
+        osc.start();
+        lfo.start();
+        activeNodes.push(osc, lfo);
+      });
+    }
+
+    soundNodesRef.current = {
+      stop: () => {
+        if (activeInterval) clearInterval(activeInterval);
+        activeNodes.forEach(node => {
+          try { node.stop(); } catch {}
+        });
+        try { masterGain.disconnect(); } catch {}
+      }
+    };
+
+    return () => {
+      if (soundNodesRef.current) {
+        soundNodesRef.current.stop();
+        soundNodesRef.current = null;
+      }
+    };
+  }, [activeSoundscape, isMuted, volume]);
 
   const [moodParticles, setMoodParticles] = useState<Array<{
     id: number;
@@ -362,35 +558,79 @@ export default function DashboardPage() {
       </div>
 
       {/* Zen Ambient Soundscape Player Bar */}
-      <div className="glass-card-sanctuary border border-border/60 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+      <div className="glass-card-sanctuary border border-teal-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl glow-card-teal">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-600 flex items-center justify-center font-bold">
-            <Volume2 className="w-5 h-5 animate-pulse" />
-          </div>
+          <button
+            onClick={() => setIsMuted(!isMuted)}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-all cursor-pointer ${
+              activeSoundscape && !isMuted
+                ? 'bg-teal-500 text-white shadow-md shadow-teal-500/30 scale-105'
+                : 'bg-teal-500/15 text-teal-600 dark:text-teal-400'
+            }`}
+            title={isMuted ? "Unmute Soundscape" : "Mute Soundscape"}
+          >
+            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className={`w-5 h-5 ${activeSoundscape ? 'animate-pulse' : ''}`} />}
+          </button>
           <div>
-            <h4 className="font-bold text-xs text-foreground">Zen Sanctuary Soundscapes</h4>
-            <p className="text-[11px] text-muted-foreground">Select background audio for relaxation & deep focus</p>
+            <div className="flex items-center gap-2">
+              <h4 className="font-bold text-xs text-foreground">Zen Sanctuary Soundscapes</h4>
+              {activeSoundscape && !isMuted && (
+                <span className="flex gap-0.5 items-end h-3">
+                  <span className="w-0.5 h-3 bg-teal-500 animate-pulse" />
+                  <span className="w-0.5 h-2 bg-teal-400 animate-pulse delay-100" />
+                  <span className="w-0.5 h-3.5 bg-teal-500 animate-pulse delay-200" />
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground font-medium">Select real-time ambient audio for relaxation & deep focus</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {ZEN_SOUNDSCAPES.map((sound) => {
-            const isActive = activeSoundscape === sound.id;
-            return (
-              <button
-                key={sound.id}
-                onClick={() => setActiveSoundscape(isActive ? null : sound.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-teal-600 text-white shadow-md shadow-teal-500/20 scale-105'
-                    : 'bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground border border-border/40'
-                }`}
-              >
-                <span>{sound.icon}</span>
-                <span>{sound.name}</span>
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            {ZEN_SOUNDSCAPES.map((sound) => {
+              const isActive = activeSoundscape === sound.id;
+              return (
+                <button
+                  key={sound.id}
+                  onClick={() => {
+                    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+                      audioCtxRef.current.resume();
+                    }
+                    setActiveSoundscape(isActive ? null : sound.id);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-md shadow-teal-500/30 scale-105'
+                      : 'bg-card/80 hover:bg-card text-muted-foreground hover:text-foreground border border-border/50'
+                  }`}
+                >
+                  <span>{sound.icon}</span>
+                  <span>{sound.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Master Volume Slider */}
+          {activeSoundscape && (
+            <div className="flex items-center gap-2 bg-card/60 px-3 py-1 rounded-xl border border-border/50 animate-in fade-in duration-300">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">Vol</span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={isMuted ? 0 : volume}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setVolume(val);
+                  if (val > 0 && isMuted) setIsMuted(false);
+                }}
+                className="w-16 h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-teal-500"
+              />
+            </div>
+          )}
         </div>
       </div>
 
