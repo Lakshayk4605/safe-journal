@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { adminController } from '../controllers/admin.controller';
 import { requireAuth } from '../middlewares/auth.middleware';
-import { requireAdmin } from '../middlewares/role.middleware';
 import { validate } from '../middlewares/validate.middleware';
 import { paginationQuerySchema } from '../validators/common.validator';
 import {

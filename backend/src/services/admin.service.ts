@@ -124,7 +124,6 @@ export const adminService = {
               id: true,
               name: true,
               email: true,
-              avatar: true,
             },
           },
         },
