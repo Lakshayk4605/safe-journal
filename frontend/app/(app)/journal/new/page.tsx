@@ -87,21 +87,23 @@ function RuledNotebookEditor({
   placeholder: string;
   disabled?: boolean;
 }) {
-  const [penPos, setPenPos] = useState({ left: 45, top: 15, isWriting: false });
+  const [penPos, setPenPos] = useState({ left: 56, top: 20, isWriting: false });
   const markerRef = useRef<HTMLSpanElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimerRef = useRef<any>(null);
 
   const updatePenPosition = useCallback(() => {
     if (markerRef.current && containerRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const markerRect = markerRef.current.getBoundingClientRect();
+      const scrollTop = textareaRef.current ? textareaRef.current.scrollTop : 0;
 
       const left = markerRect.left - containerRect.left;
-      const top = markerRect.top - containerRect.top;
+      const top = markerRect.top - containerRect.top - scrollTop;
 
       setPenPos({
-        left: Math.max(35, left),
+        left: Math.max(40, left),
         top: Math.max(10, top),
         isWriting: true
       });
@@ -109,13 +111,16 @@ function RuledNotebookEditor({
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       typingTimerRef.current = setTimeout(() => {
         setPenPos((prev) => ({ ...prev, isWriting: false }));
-      }, 700);
+      }, 600);
     }
   }, []);
 
   useEffect(() => {
-    updatePenPosition();
+    const animId = requestAnimationFrame(updatePenPosition);
+    return () => cancelAnimationFrame(animId);
   }, [content, updatePenPosition]);
+
+  const formattedContent = content.endsWith('\n') ? content + '\u00A0' : content;
 
   return (
     <div ref={containerRef} className="relative bg-ruled-paper rounded-xl p-6 sm:p-8 shadow-inner border border-amber-950/20 min-h-[360px] overflow-hidden">
@@ -125,9 +130,12 @@ function RuledNotebookEditor({
       {/* Mirror Container for Calculating Caret Coordinates */}
       <div
         className="absolute top-6 sm:top-8 left-6 sm:left-8 right-6 sm:right-8 bottom-6 sm:bottom-8 pointer-events-none whitespace-pre-wrap break-words font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 opacity-0 z-0 overflow-hidden"
+        style={{
+          transform: `translateY(-${textareaRef.current ? textareaRef.current.scrollTop : 0}px)`
+        }}
         aria-hidden="true"
       >
-        <span>{content}</span>
+        <span>{formattedContent}</span>
         <span ref={markerRef} className="inline-block w-1 h-6 bg-red-500">
           |
         </span>
@@ -135,12 +143,14 @@ function RuledNotebookEditor({
 
       {/* Real Textarea */}
       <textarea
+        ref={textareaRef}
         placeholder={placeholder}
         value={content}
         onChange={(e) => {
           onChange(e.target.value);
           updatePenPosition();
         }}
+        onScroll={updatePenPosition}
         onKeyUp={updatePenPosition}
         onClick={updatePenPosition}
         className="relative z-10 w-full min-h-[300px] bg-transparent text-slate-900 dark:text-amber-100 placeholder:text-amber-900/40 dark:placeholder:text-amber-300/30 focus:outline-none font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 resize-none"
@@ -148,12 +158,12 @@ function RuledNotebookEditor({
         disabled={disabled}
       />
 
-      {/* Real-time Fountain Pen Nib positioned EXACTLY at marker */}
+      {/* Real-time Fountain Pen Nib positioned EXACTLY at nib tip */}
       <div
         className={`absolute z-30 pointer-events-none transition-all duration-75 ease-out`}
         style={{
-          left: `${penPos.left - 10}px`,
-          top: `${penPos.top - 125}px`
+          left: `${penPos.left - 24}px`,
+          top: `${penPos.top - 156}px`
         }}
       >
         <FountainPenGraphic isWriting={penPos.isWriting} />
