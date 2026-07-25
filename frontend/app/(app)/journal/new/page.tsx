@@ -8,7 +8,7 @@ import type { Mood } from '@/lib/mock-data';
 import { ArrowLeft, Save, Sparkles, Mic, Camera, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback, useLayoutEffect } from 'react';
 import { journalApi } from '@/lib/api/journal';
 import { toBackendMood } from '@/lib/mood-map';
 import { ApiError } from '@/lib/api-client';
@@ -36,8 +36,8 @@ function FountainPenGraphic({ isWriting = false }: { isWriting?: boolean }) {
   return (
     <svg
       viewBox="0 0 120 400"
-      className={`w-12 h-40 filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.6)] transition-transform duration-100 ${
-        isWriting ? 'animate-pen-glide scale-105' : ''
+      className={`w-12 h-40 filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] transition-transform duration-150 ease-out origin-bottom-left ${
+        isWriting ? 'rotate-[-30deg] scale-105 animate-pen-glide' : 'rotate-[-38deg] opacity-85'
       }`}
     >
       <defs>
@@ -87,38 +87,37 @@ function RuledNotebookEditor({
   placeholder: string;
   disabled?: boolean;
 }) {
-  const [penPos, setPenPos] = useState({ left: 56, top: 20, isWriting: false });
   const markerRef = useRef<HTMLSpanElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const typingTimerRef = useRef<any>(null);
+  const penRef = useRef<HTMLDivElement>(null);
+  const mirrorRef = useRef<HTMLDivElement>(null);
+  const [isWriting, setIsWriting] = useState(false);
+  const writingTimerRef = useRef<any>(null);
 
-  const updatePenPosition = useCallback(() => {
-    if (markerRef.current && containerRef.current) {
+  const updatePenPositionDirectly = useCallback(() => {
+    if (markerRef.current && containerRef.current && penRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const markerRect = markerRef.current.getBoundingClientRect();
       const scrollTop = textareaRef.current ? textareaRef.current.scrollTop : 0;
 
-      const left = markerRect.left - containerRect.left;
-      const top = markerRect.top - containerRect.top - scrollTop;
+      const left = Math.max(40, markerRect.left - containerRect.left);
+      const top = Math.max(10, markerRect.top - containerRect.top - scrollTop);
 
-      setPenPos({
-        left: Math.max(40, left),
-        top: Math.max(10, top),
-        isWriting: true
-      });
+      // Hardware-accelerated GPU transform direct DOM update (0ms lag, 60fps)
+      penRef.current.style.transform = `translate3d(${left - 24}px, ${top - 156}px, 0)`;
 
-      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-      typingTimerRef.current = setTimeout(() => {
-        setPenPos((prev) => ({ ...prev, isWriting: false }));
-      }, 600);
+      setIsWriting(true);
+      if (writingTimerRef.current) clearTimeout(writingTimerRef.current);
+      writingTimerRef.current = setTimeout(() => {
+        setIsWriting(false);
+      }, 500);
     }
   }, []);
 
-  useEffect(() => {
-    const animId = requestAnimationFrame(updatePenPosition);
-    return () => cancelAnimationFrame(animId);
-  }, [content, updatePenPosition]);
+  useLayoutEffect(() => {
+    updatePenPositionDirectly();
+  }, [content, updatePenPositionDirectly]);
 
   const formattedContent = content.endsWith('\n') ? content + '\u00A0' : content;
 
@@ -129,6 +128,7 @@ function RuledNotebookEditor({
 
       {/* Mirror Container for Calculating Caret Coordinates */}
       <div
+        ref={mirrorRef}
         className="absolute top-6 sm:top-8 left-6 sm:left-8 right-6 sm:right-8 bottom-6 sm:bottom-8 pointer-events-none whitespace-pre-wrap break-words font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 opacity-0 z-0 overflow-hidden"
         style={{
           transform: `translateY(-${textareaRef.current ? textareaRef.current.scrollTop : 0}px)`
@@ -136,7 +136,7 @@ function RuledNotebookEditor({
         aria-hidden="true"
       >
         <span>{formattedContent}</span>
-        <span ref={markerRef} className="inline-block w-1 h-6 bg-red-500">
+        <span ref={markerRef} className="inline-block w-1 h-6">
           |
         </span>
       </div>
@@ -148,25 +148,30 @@ function RuledNotebookEditor({
         value={content}
         onChange={(e) => {
           onChange(e.target.value);
-          updatePenPosition();
+          updatePenPositionDirectly();
         }}
-        onScroll={updatePenPosition}
-        onKeyUp={updatePenPosition}
-        onClick={updatePenPosition}
+        onScroll={() => {
+          if (mirrorRef.current && textareaRef.current) {
+            mirrorRef.current.style.transform = `translateY(-${textareaRef.current.scrollTop}px)`;
+          }
+          updatePenPositionDirectly();
+        }}
+        onKeyUp={updatePenPositionDirectly}
+        onClick={updatePenPositionDirectly}
         className="relative z-10 w-full min-h-[300px] bg-transparent text-slate-900 dark:text-amber-100 placeholder:text-amber-900/40 dark:placeholder:text-amber-300/30 focus:outline-none font-handwriting text-2xl md:text-3xl leading-[2.25rem] pl-8 resize-none"
         required
         disabled={disabled}
       />
 
-      {/* Real-time Fountain Pen Nib positioned EXACTLY at nib tip */}
+      {/* 60FPS GPU-Accelerated Golden Fountain Pen */}
       <div
-        className={`absolute z-30 pointer-events-none transition-all duration-75 ease-out`}
+        ref={penRef}
+        className="absolute top-0 left-0 z-30 pointer-events-none transition-transform duration-75 ease-out will-change-transform"
         style={{
-          left: `${penPos.left - 24}px`,
-          top: `${penPos.top - 156}px`
+          transform: `translate3d(32px, 10px, 0)`
         }}
       >
-        <FountainPenGraphic isWriting={penPos.isWriting} />
+        <FountainPenGraphic isWriting={isWriting} />
       </div>
     </div>
   );
