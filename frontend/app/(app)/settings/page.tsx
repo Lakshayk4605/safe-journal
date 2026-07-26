@@ -144,12 +144,27 @@ export default function SettingsPage() {
 
   const [notificationPermission, setNotificationPermission] = useState<string>('default');
   const [reminderTime, setReminderTime] = useState<string>('20:00');
+  const [dailyReminderEnabled, setDailyReminderEnabled] = useState<boolean>(true);
+
+  const formatTime12h = (time24: string) => {
+    if (!time24) return '';
+    const [hStr, mStr] = time24.split(':');
+    let h = parseInt(hStr, 10);
+    const m = mStr || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${ampm}`;
+  };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationPermission(Notification.permission);
+    if (typeof window !== 'undefined') {
+      if ('Notification' in window) {
+        setNotificationPermission(Notification.permission);
+      }
       const savedTime = localStorage.getItem('daily_reminder_time') || '20:00';
+      const savedEnabled = localStorage.getItem('daily_reminder_enabled') !== 'false';
       setReminderTime(savedTime);
+      setDailyReminderEnabled(savedEnabled);
     }
   }, []);
 
@@ -173,14 +188,28 @@ export default function SettingsPage() {
         icon: "/icon-192x192.png"
       });
     } else {
-      alert("Please enable notification permissions first!");
+      handleRequestPermission();
     }
   };
 
-  const handleSaveReminderTime = () => {
+  const handleSaveReminderTime = async (newTime: string, enabled = dailyReminderEnabled) => {
+    setReminderTime(newTime);
+    setDailyReminderEnabled(enabled);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('daily_reminder_time', reminderTime);
-      alert(`Daily reminder scheduled for ${reminderTime} successfully!`);
+      localStorage.setItem('daily_reminder_time', newTime);
+      localStorage.setItem('daily_reminder_enabled', enabled ? 'true' : 'false');
+      
+      if ('Notification' in window && Notification.permission !== 'granted' && enabled) {
+        const perm = await Notification.requestPermission();
+        setNotificationPermission(perm);
+      }
+
+      if ('Notification' in window && Notification.permission === 'granted' && enabled) {
+        new Notification("Daily Reminder Configured ✨", {
+          body: `Your daily journal writing reminder is set for ${formatTime12h(newTime)} every day!`,
+          icon: "/icon-192x192.png"
+        });
+      }
     }
   };
 
@@ -609,15 +638,118 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Notifications */}
-          <div className="space-y-4 border-t border-border pt-6">
-            <div className="flex items-center justify-between">
+          {/* Notifications & Daily Journal Writing Reminder */}
+          <div className="space-y-6 border-t border-border pt-6">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2 font-serif">
+                <Bell className="w-5 h-5 text-primary" />
+                Journal Writing Reminders
+              </h3>
+              <p className="text-xs text-muted-foreground">Configure daily scheduled notifications to keep your journaling streak strong</p>
+            </div>
+
+            {/* Daily Journal Writing Reminder Glass Card */}
+            <div className="glass-card-sanctuary border border-primary/30 rounded-2xl p-5 md:p-6 space-y-5 shadow-lg glow-card-amber">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <label className="font-extrabold text-sm text-foreground flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    Daily Journal Writing Reminder
+                  </label>
+                  <p className="text-xs text-muted-foreground">Receive a scheduled reminder every day at your chosen time</p>
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={dailyReminderEnabled}
+                    onChange={(e) => handleSaveReminderTime(reminderTime, e.target.checked)}
+                    className="w-5 h-5 accent-primary cursor-pointer"
+                  />
+                </label>
+              </div>
+
+              {dailyReminderEnabled && (
+                <div className="space-y-4 pt-3 border-t border-border/50 animate-in fade-in duration-300">
+                  {/* Time Picker Input */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                      <span>Select Daily Reminder Time</span>
+                      <span className="text-primary font-extrabold">{formatTime12h(reminderTime)}</span>
+                    </label>
+                    <div className="flex gap-2 max-w-sm">
+                      <Input
+                        type="time"
+                        value={reminderTime}
+                        onChange={(e) => setReminderTime(e.target.value)}
+                        className="text-center font-extrabold text-base h-11 bg-background/80 border-border/60 text-foreground rounded-xl"
+                      />
+                      <Button 
+                        onClick={() => handleSaveReminderTime(reminderTime, true)} 
+                        className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-extrabold px-5 h-11 rounded-xl cursor-pointer shadow-md"
+                      >
+                        Save Time
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Quick Time Preset Slots */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-bold text-muted-foreground block">Quick Time Presets:</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { label: 'Morning 🌅', time: '08:00' },
+                        { label: 'Afternoon ☀️', time: '14:00' },
+                        { label: 'Evening 🌌', time: '20:00' },
+                        { label: 'Bedtime 🌙', time: '22:00' },
+                      ].map((preset) => {
+                        const isSelected = reminderTime === preset.time;
+                        return (
+                          <button
+                            key={preset.time}
+                            type="button"
+                            onClick={() => handleSaveReminderTime(preset.time, true)}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                              isSelected
+                                ? 'bg-primary text-white border-primary shadow-sm scale-105'
+                                : 'bg-card/70 hover:bg-card text-muted-foreground hover:text-foreground border-border/60'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Browser Permission Request & Status */}
+                  <div className="pt-3 border-t border-border/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    {notificationPermission === 'granted' ? (
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                        <span className="text-xs text-emerald-500 font-extrabold">Device Notifications Active</span>
+                      </div>
+                    ) : (
+                      <Button onClick={handleRequestPermission} size="sm" className="bg-accent hover:bg-accent/90 text-white font-bold cursor-pointer rounded-xl text-xs">
+                        Enable Browser Notifications
+                      </Button>
+                    )}
+
+                    <Button onClick={handleSendTestNotification} size="sm" variant="outline" className="text-xs font-bold rounded-xl cursor-pointer">
+                      Send Test Notification
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Email Notifications */}
+            <div className="flex items-center justify-between pt-2">
               <div className="space-y-1">
-                <label className="font-medium flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-primary" />
+                <label className="font-medium text-sm flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-muted-foreground" />
                   Email Notifications
                 </label>
-                <p className="text-sm text-muted-foreground">Get reminders to journal and mood check-ins via email</p>
+                <p className="text-xs text-muted-foreground">Get weekly reflections and summary check-ins via email</p>
               </div>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -627,63 +759,6 @@ export default function SettingsPage() {
                   className="w-4 h-4 cursor-pointer"
                 />
               </label>
-            </div>
-
-            {/* Browser Push Notifications */}
-            <div className="space-y-3 border-t border-border/40 pt-4">
-              <div className="space-y-1">
-                <label className="font-semibold text-sm flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-accent" />
-                  Browser Push Notifications
-                </label>
-                <p className="text-xs text-muted-foreground">Receive instant desktop reminders on your device</p>
-              </div>
-
-              {notificationPermission === 'default' && (
-                <Button onClick={handleRequestPermission} size="sm" className="bg-accent hover:bg-accent/90 text-white font-bold cursor-pointer">
-                  Request Browser Permission
-                </Button>
-              )}
-
-              {notificationPermission === 'denied' && (
-                <p className="text-xs text-destructive font-semibold">
-                  ⚠️ Notification permission denied. Please reset permissions in your browser settings to enable reminders.
-                </p>
-              )}
-
-              {notificationPermission === 'granted' && (
-                <div className="space-y-4 pt-1 animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                    <span className="text-xs text-emerald-500 font-bold">Permissions Active</span>
-                  </div>
-
-                  {/* Once/Test Notification */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground">Test Notification (Once)</p>
-                    <Button onClick={handleSendTestNotification} size="sm" variant="outline" className="text-xs font-semibold cursor-pointer">
-                      Send Test Notification (Once)
-                    </Button>
-                  </div>
-
-                  {/* Daily Reminder */}
-                  <div className="space-y-2 pt-2 border-t border-border/30">
-                    <p className="text-xs font-semibold text-muted-foreground">Daily Reminder Notification</p>
-                    <div className="flex gap-2 max-w-xs">
-                      <Input
-                        type="time"
-                        value={reminderTime}
-                        onChange={(e) => setReminderTime(e.target.value)}
-                        className="text-center font-bold text-sm h-9 bg-card text-foreground"
-                      />
-                      <Button onClick={handleSaveReminderTime} size="sm" className="bg-primary hover:bg-primary/95 text-white font-bold cursor-pointer h-9">
-                        Save Time
-                      </Button>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">Configure the time to trigger your daily reminder</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

@@ -26,9 +26,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     const checkReminder = () => {
-      const savedTime = localStorage.getItem('daily_reminder_time');
-      if (!savedTime) return;
+      const enabled = localStorage.getItem('daily_reminder_enabled') !== 'false';
+      if (!enabled) return;
 
+      const savedTime = localStorage.getItem('daily_reminder_time') || '20:00';
       const [targetHours, targetMinutes] = savedTime.split(':').map(Number);
       const now = new Date();
       const currentHours = now.getHours();
@@ -41,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         if (lastSentDate !== todayStr) {
           new Notification("Daily Sanctuary Reminder 🧘", {
-            body: "It's time for your daily reflection and mindfulness check-in.",
+            body: "It's time for your daily reflection & journal entry. Take a moment for yourself.",
             icon: "/icon-192x192.png"
           });
           localStorage.setItem('daily_reminder_last_sent', todayStr);
