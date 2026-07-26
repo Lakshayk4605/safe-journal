@@ -305,13 +305,11 @@ export default function DashboardPage() {
   const [noteContent, setNoteContent] = useState('');
   const [noteColor, setNoteColor] = useState('yellow');
 
-  const quote = useMemo(
-    () => inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)],
-    [],
-  );
+  const [quote, setQuote] = useState(inspirationalQuotes[0]);
 
   useEffect(() => {
     setMounted(true);
+    setQuote(inspirationalQuotes[Math.floor(Math.random() * inspirationalQuotes.length)]);
     setCurrentPrompt(writingPrompts[Math.floor(Math.random() * writingPrompts.length)]);
     const hours = new Date().getHours();
     if (hours < 12) {
