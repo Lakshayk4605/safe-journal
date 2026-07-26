@@ -5,7 +5,7 @@ import { MoodBadge } from '@/components/ui/mood-badge';
 import { inspirationalQuotes } from '@/lib/mock-data';
 import { PenTool, Calendar, TrendingUp, Zap, BookOpen, MessageSquare, Sparkles, Quote, Heart, Bookmark, Edit3, Check, Plus, Trash2, Star, Shield, Sun, Moon, Sunrise, ArrowRight, Activity, Smile, Volume2, VolumeX, RefreshCw, Compass } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { journalApi } from '@/lib/api/journal';
 import { moodApi } from '@/lib/api/mood';
