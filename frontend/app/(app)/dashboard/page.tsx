@@ -353,12 +353,12 @@ export default function DashboardPage() {
     return Array.from({ length: 30 }).map((_, i) => {
       const angle = (i / 30) * 360;
       const rad = (angle * Math.PI) / 180;
-      const distance = 90 + Math.random() * 110;
+      const distance = 90 + ((i * 17) % 110);
       const x = Math.cos(rad) * distance;
       const y = Math.sin(rad) * distance;
-      const delay = Math.random() * 0.15;
-      const size = 6 + Math.random() * 8;
-      const rotation = 90 + Math.random() * 270;
+      const delay = ((i * 13) % 15) / 100;
+      const size = 6 + ((i * 7) % 8);
+      const rotation = 90 + ((i * 23) % 270);
       const color = i % 3 === 0 ? '#f59e0b' : i % 3 === 1 ? '#38bdf8' : '#f43f5e';
       return { x, y, delay, size, rotation, color };
     });
