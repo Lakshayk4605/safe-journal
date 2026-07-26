@@ -108,6 +108,8 @@ export default function NewEntryPage() {
     fileInput.click();
   };
 
+  const processedFinalIndexRef = useRef(-1);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -118,23 +120,27 @@ export default function NewEntryPage() {
         rec.lang = 'en-US';
 
         rec.onresult = (event: any) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
+          let newFinalText = '';
+          let currentInterimText = '';
 
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript + ' ';
+          for (let i = 0; i < event.results.length; i++) {
+            const result = event.results[i];
+            if (result.isFinal) {
+              if (i > processedFinalIndexRef.current) {
+                newFinalText += result[0].transcript + ' ';
+                processedFinalIndexRef.current = i;
+              }
             } else {
-              interimTranscript += event.results[i][0].transcript;
+              if (i > processedFinalIndexRef.current) {
+                currentInterimText += result[0].transcript;
+              }
             }
           }
 
-          if (finalTranscript) {
-            setContent((prev) => prev + finalTranscript);
-            setInterimText('');
-          } else {
-            setInterimText(interimTranscript);
+          if (newFinalText) {
+            setContent((prev) => prev + newFinalText);
           }
+          setInterimText(currentInterimText);
         };
 
         rec.onerror = (event: any) => {
@@ -179,6 +185,7 @@ export default function NewEntryPage() {
     } else {
       try {
         setInterimText('');
+        processedFinalIndexRef.current = -1;
         recognition.start();
         setIsListening(true);
       } catch (err) {
