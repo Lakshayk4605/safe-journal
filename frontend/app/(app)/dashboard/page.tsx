@@ -501,7 +501,16 @@ export default function DashboardPage() {
     return stickyNotes;
   }, [stickyNotes, noteFilter]);
 
-  if (!mounted || !user) return null;
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <RefreshCw className="w-8 h-8 text-teal-600 animate-spin" />
+        <p className="text-sm font-extrabold text-muted-foreground animate-pulse">Opening your sanctuary...</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="relative min-h-screen p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto overflow-hidden">
@@ -766,7 +775,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
                         <span className="flex items-center gap-1 font-medium">
                           <Calendar className="w-3.5 h-3.5 text-teal-600" />
-                          {new Date(entry.createdAt).toLocaleDateString(undefined, {
+                          {new Date(entry.createdAt).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                           })}
