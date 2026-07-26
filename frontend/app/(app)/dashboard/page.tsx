@@ -326,8 +326,8 @@ export default function DashboardPage() {
           journalApi.list({ page: 1, limit: 4, sortBy: 'createdAt', sortOrder: 'desc' }),
           moodApi.history('week'),
         ]);
-        setEntries(entriesResult.data);
-        setTodayMood(moodResult.data.history[0] ?? null);
+        setEntries(Array.isArray(entriesResult?.data) ? entriesResult.data : []);
+        setTodayMood(moodResult?.data?.history?.[0] ?? null);
       } catch {
         // Dashboard degrades gracefully to empty state on error.
       } finally {

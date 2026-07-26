@@ -28,6 +28,11 @@ export default function Error({
         <p className="text-sm text-muted-foreground leading-relaxed">
           Your journal data is completely safe & encrypted. A temporary layout glitch occurred. Tap below to reload your sanctuary.
         </p>
+        {error?.message && (
+          <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-xs font-mono text-destructive text-left overflow-x-auto">
+            {error.message}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-4">
