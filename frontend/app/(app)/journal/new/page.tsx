@@ -8,7 +8,7 @@ import type { Mood } from '@/lib/mock-data';
 import { ArrowLeft, Save, Sparkles, Mic, Camera } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { journalApi } from '@/lib/api/journal';
 import { toBackendMood } from '@/lib/mood-map';
 import { ApiError } from '@/lib/api-client';
