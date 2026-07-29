@@ -1713,6 +1713,24 @@ textarea,
   display: none;
 }
 
+@media print {
+  .print-only {
+    display: block !important;
+  }
+  .screen-only {
+    display: none !important;
+  }
+  .break-before-page {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+}
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
 /* Custom premium animations for streaks */
 @keyframes particle-explode {
   0% {

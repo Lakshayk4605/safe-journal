@@ -12,8 +12,9 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { TrendingUp, Calendar, Award, FileText } from 'lucide-react';
+import { TrendingUp, Calendar, Award, FileText, Zap, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { reportsApi } from '@/lib/api/reports';
 import { moodApi } from '@/lib/api/mood';
@@ -29,14 +30,69 @@ const chartColors: Record<string, string> = {
   anxious: 'var(--color-anxious)',
 };
 
+function renderBriefContent(text: string) {
+  return text.split('\n').map((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('### ')) {
+      return (
+        <h4 key={idx} className="text-base font-bold text-foreground mt-4 mb-1.5 flex items-center gap-1.5">
+          {trimmed.slice(4)}
+        </h4>
+      );
+    }
+    if (trimmed.startsWith('## ')) {
+      return (
+        <h3 key={idx} className="text-lg font-bold text-foreground mt-4 mb-2">
+          {trimmed.slice(3)}
+        </h3>
+      );
+    }
+    if (trimmed.startsWith('- **') || trimmed.startsWith('* **')) {
+      const parts = trimmed.slice(2).split('**');
+      if (parts.length >= 3) {
+        const title = parts[1];
+        const content = parts.slice(2).join('**');
+        return (
+          <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1">
+            <span className="text-accent mt-1.5 font-bold text-[10px]">•</span>
+            <span>
+              <strong className="text-foreground">{title}</strong>{content}
+            </span>
+          </div>
+        );
+      }
+    }
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      return (
+        <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1">
+          <span className="text-accent mt-1.5 font-bold text-[10px]">•</span>
+          <span>{trimmed.slice(2)}</span>
+        </div>
+      );
+    }
+    if (trimmed === '') {
+      return <div key={idx} className="h-1.5" />;
+    }
+    return (
+      <p key={idx} className="text-sm text-foreground/95 leading-relaxed whitespace-pre-wrap">
+        {line}
+      </p>
+    );
+  });
+}
+
 export default function ReportsPage() {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('month');
   const [summary, setSummary] = useState<BackendWellnessSummary | null>(null);
   const [history, setHistory] = useState<BackendMoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [brief, setBrief] = useState<string>('');
+  const [loadingBrief, setLoadingBrief] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setLoadingBrief(true);
+    
     Promise.all([reportsApi.summary(), moodApi.history(timeRange)])
       .then(([summaryResult, historyResult]) => {
         setSummary(summaryResult.data);
@@ -47,6 +103,15 @@ export default function ReportsPage() {
         setHistory([]);
       })
       .finally(() => setLoading(false));
+
+    reportsApi.brief(timeRange)
+      .then((res) => {
+        setBrief(res.data.brief);
+      })
+      .catch(() => {
+        setBrief('');
+      })
+      .finally(() => setLoadingBrief(false));
   }, [timeRange]);
 
   const chartData = [...history]
@@ -67,160 +132,312 @@ export default function ReportsPage() {
     return <div className="p-4 md:p-8 text-muted-foreground">Loading your reports...</div>;
   }
 
+  // Handle Empty State: if no entries exist
+  if (!summary || summary.totalEntries === 0) {
+    return (
+      <div className="p-4 md:p-8 space-y-6 max-w-4xl mx-auto text-center py-20">
+        {/* Screen View */}
+        <div className="space-y-4 no-print">
+          <FileText className="w-16 h-16 text-muted-foreground mx-auto animate-pulse" />
+          <h1 className="text-3xl font-bold">No Wellness Data Available</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            You haven't logged any journal entries or mood inputs yet. Create some entries to generate your personalized wellness report.
+          </p>
+          <div className="flex justify-center gap-4 pt-6">
+            <Link href="/journal/new">
+              <Button className="bg-primary hover:bg-primary/90 cursor-pointer">
+                Create First Entry
+              </Button>
+            </Link>
+            <Button variant="outline" onClick={() => window.print()} className="gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95">
+              <FileText className="w-4 h-4" />
+              Export Empty Report PDF
+            </Button>
+          </div>
+        </div>
+
+        {/* Print View of Empty State */}
+        <div className="hidden print:block pt-12 text-left border-t border-gray-300 text-black">
+          <div className="border-b-2 border-gray-300 pb-4 flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Safe Journal</h1>
+              <p className="text-sm text-gray-500 font-medium">Personal Wellness Analysis Report</p>
+            </div>
+            <div className="text-right text-xs text-gray-500">
+              <p>Generated: {new Date().toLocaleDateString()}</p>
+              <p className="capitalize">Range: {timeRange}</p>
+            </div>
+          </div>
+          <p className="mt-8 text-lg font-medium text-gray-800">
+            No entries or moods were recorded during the selected period. Hence, no analytical metrics or AI wellness summaries could be generated.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 md:p-8 space-y-6 md:space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl md:text-4xl font-bold">Your Wellness Reports</h1>
-          <p className="text-muted-foreground">Track your mood patterns and emotional trends</p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => window.print()}
-          className="gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 no-print"
-        >
-          <FileText className="w-4 h-4" />
-          Export PDF
-        </Button>
-      </div>
-
-      {/* Time Range Selector */}
-      <div className="flex gap-2 no-print">
-        {(['week', 'month', 'all'] as const).map((range) => (
+    <>
+      {/* On Screen Interfacing View */}
+      <div className="p-4 md:p-8 space-y-6 md:space-y-8 no-print">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-2xl md:text-4xl font-bold">Your Wellness Reports</h1>
+            <p className="text-muted-foreground">Track your mood patterns and emotional trends</p>
+          </div>
           <Button
-            key={range}
-            onClick={() => setTimeRange(range)}
-            variant={timeRange === range ? 'default' : 'outline'}
-            className={timeRange === range ? 'bg-primary hover:bg-primary/90' : ''}
+            variant="outline"
+            onClick={() => window.print()}
+            className="gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95"
           >
-            {range.charAt(0).toUpperCase() + range.slice(1)}
+            <FileText className="w-4 h-4" />
+            Export PDF
           </Button>
-        ))}
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <div className="bg-card border border-border rounded-xl p-6 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Average Mood</span>
-            <TrendingUp className="w-4 h-4 text-primary" />
-          </div>
-          <p className="text-3xl font-bold">{(summary?.averageMood ?? 0).toFixed(1)}/5</p>
-          <p className="text-xs text-muted-foreground">Based on your entries</p>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Best Mood</span>
-            <Award className="w-4 h-4 text-accent" />
-          </div>
-          <p className="text-3xl font-bold">{summary?.bestMood ?? 0}/5</p>
-          <p className="text-xs text-muted-foreground">Your peak so far</p>
+        {/* Time Range Selector */}
+        <div className="flex gap-2">
+          {(['week', 'month', 'all'] as const).map((range) => (
+            <Button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              variant={timeRange === range ? 'default' : 'outline'}
+              className={timeRange === range ? 'bg-primary hover:bg-primary/90' : ''}
+            >
+              {range.charAt(0).toUpperCase() + range.slice(1)}
+            </Button>
+          ))}
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Entries</span>
-            <Calendar className="w-4 h-4 text-secondary" />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-card border border-border rounded-xl p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Average Mood</span>
+              <TrendingUp className="w-4 h-4 text-primary" />
+            </div>
+            <p className="text-3xl font-bold">{(summary?.averageMood ?? 0).toFixed(1)}/5</p>
+            <p className="text-xs text-muted-foreground">Based on your entries</p>
           </div>
-          <p className="text-3xl font-bold">{summary?.totalEntries ?? 0}</p>
-          <p className="text-xs text-muted-foreground">Total journal entries</p>
-        </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Week Trend</span>
-            <TrendingUp
-              className={`w-4 h-4 ${(summary?.weekOverWeekChange ?? 0) > 0 ? 'text-success' : 'text-destructive'}`}
-            />
+          <div className="bg-card border border-border rounded-xl p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Best Mood</span>
+              <Award className="w-4 h-4 text-accent" />
+            </div>
+            <p className="text-3xl font-bold">{summary?.bestMood ?? 0}/5</p>
+            <p className="text-xs text-muted-foreground">Your peak so far</p>
           </div>
-          <p
-            className={`text-3xl font-bold ${
-              (summary?.weekOverWeekChange ?? 0) > 0 ? 'text-success' : 'text-destructive'
-            }`}
-          >
-            {(summary?.weekOverWeekChange ?? 0) > 0 ? '+' : ''}
-            {(summary?.weekOverWeekChange ?? 0).toFixed(2)}
-          </p>
-          <p className="text-xs text-muted-foreground">vs previous week</p>
-        </div>
-      </div>
 
-      {/* Charts */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Mood Trend */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Mood Trend</h2>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="date" stroke="var(--color-muted-foreground)" />
-                <YAxis stroke="var(--color-muted-foreground)" domain={[0, 5]} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--color-card)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '0.5rem',
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  stroke="var(--color-primary)"
-                  dot={{ fill: 'var(--color-primary)', r: 4 }}
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-sm text-muted-foreground py-12 text-center">
-              Not enough mood data yet — log a few journal entries to see your trend.
+          <div className="bg-card border border-border rounded-xl p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Entries</span>
+              <Calendar className="w-4 h-4 text-secondary" />
+            </div>
+            <p className="text-3xl font-bold">{summary?.totalEntries ?? 0}</p>
+            <p className="text-xs text-muted-foreground">Total journal entries</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-6 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Week Trend</span>
+              <TrendingUp
+                className={`w-4 h-4 ${(summary?.weekOverWeekChange ?? 0) > 0 ? 'text-success' : 'text-destructive'}`}
+              />
+            </div>
+            <p
+              className={`text-3xl font-bold ${
+                (summary?.weekOverWeekChange ?? 0) > 0 ? 'text-success' : 'text-destructive'
+              }`}
+            >
+              {(summary?.weekOverWeekChange ?? 0) > 0 ? '+' : ''}
+              {(summary?.weekOverWeekChange ?? 0).toFixed(2)}
             </p>
-          )}
+            <p className="text-xs text-muted-foreground">vs previous week</p>
+          </div>
         </div>
 
-        {/* Mood Distribution */}
-        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-          <h2 className="text-xl font-semibold">Mood Distribution</h2>
-          {moodDistribution.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={moodDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                  {moodDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-sm text-muted-foreground py-12 text-center">No mood data yet.</p>
-          )}
+        {/* Charts */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Mood Trend */}
+          <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Mood Trend</h2>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="date" stroke="var(--color-muted-foreground)" />
+                  <YAxis stroke="var(--color-muted-foreground)" domain={[0, 5]} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--color-card)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '0.5rem',
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="var(--color-primary)"
+                    dot={{ fill: 'var(--color-primary)', r: 4 }}
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-muted-foreground py-12 text-center">
+                Not enough mood data yet — log a few journal entries to see your trend.
+              </p>
+            )}
+          </div>
+
+          {/* Mood Distribution */}
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <h2 className="text-xl font-semibold">Mood Distribution</h2>
+            {moodDistribution.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie data={moodDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                    {moodDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-muted-foreground py-12 text-center">No mood data yet.</p>
+            )}
+          </div>
+        </div>
+
+        {/* AI Wellness Report Brief */}
+        <div className="bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Zap className="w-5 h-5 text-accent" />
+              AI Wellness Analysis Brief
+            </h2>
+            {loadingBrief && (
+              <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+            )}
+          </div>
+          <div className="space-y-3 text-sm leading-relaxed text-foreground/90">
+            {loadingBrief ? (
+              <div className="space-y-3 py-4">
+                <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                <div className="h-4 bg-muted animate-pulse rounded w-5/6" />
+                <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
+              </div>
+            ) : brief ? (
+              renderBriefContent(brief)
+            ) : (
+              <p className="text-muted-foreground">
+                📊 Keep journaling regularly to unlock more personalized wellness insights here.
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Insights */}
-      <div className="bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 rounded-xl p-6 space-y-4">
-        <h2 className="text-xl font-semibold">Insights & Patterns</h2>
-        <div className="space-y-3 text-sm">
-          {summary && summary.weekOverWeekChange !== 0 ? (
-            <p className="text-foreground">
-              {summary.weekOverWeekChange > 0 ? '📈' : '📉'} Your mood has{' '}
-              <strong>{summary.weekOverWeekChange > 0 ? 'improved' : 'dipped'}</strong> compared to last week.
+      {/* Print-only View Layout */}
+      <div className="hidden print:block p-8 space-y-8 max-w-4xl mx-auto text-black">
+        {/* Print Header */}
+        <div className="border-b-2 border-gray-300 pb-4 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Safe Journal</h1>
+            <p className="text-sm text-gray-500 font-medium">Personal Wellness Analysis Report</p>
+          </div>
+          <div className="text-right text-xs text-gray-500 font-mono">
+            <p>Generated: {new Date().toLocaleDateString()}</p>
+            <p className="capitalize">Period: {timeRange}</p>
+          </div>
+        </div>
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-4 gap-4 border border-gray-300 rounded-lg p-4 bg-gray-50">
+          <div className="text-center">
+            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Average Mood</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{(summary?.averageMood ?? 0).toFixed(1)}/5</p>
+          </div>
+          <div className="text-center border-l border-gray-200">
+            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Best Mood</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{summary?.bestMood ?? 0}/5</p>
+          </div>
+          <div className="text-center border-l border-gray-200">
+            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Total Entries</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{summary?.totalEntries ?? 0}</p>
+          </div>
+          <div className="text-center border-l border-gray-200">
+            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Week Trend</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">
+              {(summary?.weekOverWeekChange ?? 0) > 0 ? '+' : ''}
+              {(summary?.weekOverWeekChange ?? 0).toFixed(2)}
             </p>
-          ) : (
-            <p className="text-foreground">
-              📊 Keep journaling regularly to unlock more personalized insights here.
-            </p>
-          )}
-          <p className="text-foreground">
-            ✨ You&apos;ve logged <strong>{summary?.totalEntries ?? 0}</strong> entries so far — every one helps
-            build a clearer picture of your patterns.
-          </p>
+          </div>
+        </div>
+
+        {/* AI Wellness Report Brief Content */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-1 flex items-center gap-2">
+            AI Wellness Analysis Brief
+          </h2>
+          <div className="space-y-2 text-sm leading-relaxed text-gray-800">
+            {brief ? renderBriefContent(brief) : <p className="text-gray-400">No wellness analysis available for this range.</p>}
+          </div>
+        </div>
+
+        {/* Page Break for Printable Charts */}
+        <div className="pt-8 space-y-8 break-before-page border-t border-gray-200 mt-12">
+          <h2 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-1">Visual Mood Analytics</h2>
+          
+          <div className="grid grid-cols-1 gap-6">
+            <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <h3 className="text-xs font-semibold text-gray-500 mb-4 text-center">Mood Trend over Selected Period</h3>
+              {chartData.length > 0 ? (
+                <div className="h-[220px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="date" stroke="#6b7280" fontSize={10} />
+                      <YAxis stroke="#6b7280" domain={[0, 5]} fontSize={10} />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#6366f1"
+                        dot={{ fill: '#6366f1', r: 4 }}
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 text-center py-12">Not enough mood data to render trend chart.</p>
+              )}
+            </div>
+
+            <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <h3 className="text-xs font-semibold text-gray-500 mb-4 text-center">Distribution of Mood Types</h3>
+              {moodDistribution.length > 0 ? (
+                <div className="h-[200px] w-full flex justify-center items-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={moodDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={{ fontSize: 10, fill: '#374151' }}>
+                        {moodDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 text-center py-12">No mood distribution data available.</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

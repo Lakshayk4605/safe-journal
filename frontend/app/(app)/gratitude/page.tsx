@@ -89,6 +89,7 @@ export default function GratitudePage() {
     setError('');
 
     const payload: { item1: string; item2?: string; item3?: string; notes?: string } = {
+      item1: '',
       notes: notes.trim() || undefined,
     };
 

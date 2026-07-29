@@ -403,9 +403,8 @@ export default function DashboardPage() {
     }, 1300);
 
     try {
-      const result = await moodApi.create({
+      const result = await moodApi.log({
         mood: m.mood as any,
-        score: m.score,
         notes: 'Quick check-in from dashboard sanctuary',
       });
       setTodayMood(result.data.entry);

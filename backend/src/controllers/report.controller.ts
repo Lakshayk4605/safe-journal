@@ -10,4 +10,11 @@ export const reportController = {
     const summary = await reportService.getWellnessSummary(req.user.id);
     sendSuccess(res, 200, 'Wellness summary fetched', summary);
   }),
+
+  brief: asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) throw ApiError.unauthorized();
+    const range = (req.query.range as 'week' | 'month' | 'all') || 'month';
+    const briefData = await reportService.getWellnessReportBrief(req.user.id, range);
+    sendSuccess(res, 200, 'Wellness report brief fetched', briefData);
+  }),
 };

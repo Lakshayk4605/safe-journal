@@ -7,7 +7,6 @@ import { refreshTokenExpiryDate, signAccessToken, signRefreshToken, verifyRefres
 import { ApiError } from '../utils/apiError';
 import { emailService } from './email.service';
 import { TOKEN_EXPIRY } from '../constants';
-import { prisma } from '../config/prisma';
 
 interface RequestContext {
   ipAddress?: string;
