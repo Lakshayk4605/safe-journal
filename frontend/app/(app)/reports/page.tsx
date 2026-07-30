@@ -30,22 +30,24 @@ const chartColors: Record<string, string> = {
   anxious: 'var(--color-anxious)',
 };
 
-function renderBriefContent(text: string) {
-  return text.split('\n').map((line, idx) => {
+function renderBriefContent(text: string, isPrint = false) {
+  let cleanText = text.replace(/^#+\s*Wellness Analysis Report Brief\s*\n?/i, '');
+
+  return cleanText.split('\n').map((line, idx) => {
     const trimmed = line.trim();
     if (!trimmed) {
-      return <div key={idx} className="h-1.5" />;
+      return <div key={idx} className={isPrint ? "h-1" : "h-1.5"} />;
     }
     if (trimmed.startsWith('### ')) {
       return (
-        <h4 key={idx} className="text-base font-bold text-foreground mt-4 mb-1.5 flex items-center gap-1.5">
+        <h4 key={idx} className={isPrint ? "text-xs font-extrabold text-gray-950 mt-2 mb-1 uppercase tracking-wide border-b border-gray-200 pb-0.5" : "text-base font-bold text-foreground mt-4 mb-1.5 flex items-center gap-1.5"}>
           {trimmed.slice(4)}
         </h4>
       );
     }
     if (trimmed.startsWith('## ')) {
       return (
-        <h3 key={idx} className="text-lg font-bold text-foreground mt-4 mb-2">
+        <h3 key={idx} className={isPrint ? "text-xs font-black text-gray-950 mt-2.5 mb-1 uppercase tracking-wide border-b border-gray-200 pb-0.5" : "text-lg font-bold text-foreground mt-4 mb-2"}>
           {trimmed.slice(3)}
         </h3>
       );
@@ -60,10 +62,10 @@ function renderBriefContent(text: string) {
         const title = parts[1];
         const content = parts.slice(2).join('**');
         return (
-          <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1">
-            <span className="text-accent mt-1.5 font-bold text-[10px]">•</span>
+          <div key={idx} className={isPrint ? "flex items-start gap-1.5 text-[11px] leading-tight text-gray-900 pl-2 mt-1" : "flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1"}>
+            <span className={isPrint ? "text-gray-900 font-bold text-[8px] mt-0.5">•</span>
             <span>
-              <strong className="text-foreground font-semibold">{title}</strong>{content}
+              <strong className={isPrint ? "text-gray-950 font-extrabold" : "text-foreground font-semibold"}>{title}</strong>{content}
             </span>
           </div>
         );
@@ -73,8 +75,8 @@ function renderBriefContent(text: string) {
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       const content = trimmed.replace(/^[\*\-]\s+/, '');
       return (
-        <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1">
-          <span className="text-accent mt-1.5 font-bold text-[10px]">•</span>
+        <div key={idx} className={isPrint ? "flex items-start gap-1.5 text-[11px] leading-tight text-gray-900 pl-2 mt-1" : "flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1"}>
+          <span className={isPrint ? "text-gray-900 font-bold text-[8px] mt-0.5">•</span>
           <span>{content}</span>
         </div>
       );
@@ -83,14 +85,14 @@ function renderBriefContent(text: string) {
     // Match bold lines like: "**1. Executive Summary**"
     if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length > 4) {
       return (
-        <p key={idx} className="text-sm font-bold text-foreground mt-3 mb-1">
+        <p key={idx} className={isPrint ? "text-xs font-extrabold text-gray-950 mt-2 mb-0.5 uppercase tracking-wide border-b border-gray-200 pb-0.5" : "text-sm font-bold text-foreground mt-3 mb-1"}>
           {trimmed.slice(2, -2)}
         </p>
       );
     }
 
     return (
-      <p key={idx} className="text-sm text-foreground/95 leading-relaxed whitespace-pre-wrap">
+      <p key={idx} className={isPrint ? "text-[11px] text-gray-900 leading-snug whitespace-pre-wrap" : "text-sm text-foreground/95 leading-relaxed whitespace-pre-wrap"}>
         {line}
       </p>
     );
@@ -358,36 +360,36 @@ export default function ReportsPage() {
       </div>
 
       {/* Print-only View Layout */}
-      <div className="hidden print:block p-8 space-y-8 max-w-4xl mx-auto text-black reports-print-container">
+      <div className="hidden print:block p-6 space-y-6 max-w-4xl mx-auto text-black reports-print-container">
         {/* Print Header */}
-        <div className="border-b-2 border-gray-300 pb-4 flex justify-between items-end">
+        <div className="border-b-2 border-gray-300 pb-3 flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Safe Journal</h1>
-            <p className="text-sm text-gray-500 font-medium">Personal Wellness Analysis Report</p>
+            <h1 className="text-2xl font-extrabold tracking-tight text-gray-950">Safe Journal</h1>
+            <p className="text-xs text-gray-600 font-medium">Personal Wellness Analysis Report</p>
           </div>
-          <div className="text-right text-xs text-gray-500 font-mono">
+          <div className="text-right text-[11px] text-gray-600 font-mono">
             <p>Generated: {new Date().toLocaleDateString()}</p>
             <p className="capitalize">Period: {timeRange}</p>
           </div>
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-4 gap-4 border border-gray-300 rounded-lg p-4 bg-gray-50">
+        <div className="grid grid-cols-4 gap-3 border border-gray-300 rounded-lg p-3 bg-gray-50">
           <div className="text-center">
-            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Average Mood</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{(summary?.averageMood ?? 0).toFixed(1)}/5</p>
+            <p className="text-[9px] text-gray-500 uppercase font-extrabold tracking-wider">Average Mood</p>
+            <p className="text-xl font-bold text-gray-950 mt-0.5">{(summary?.averageMood ?? 0).toFixed(1)}/5</p>
           </div>
           <div className="text-center border-l border-gray-200">
-            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Best Mood</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{summary?.bestMood ?? 0}/5</p>
+            <p className="text-[9px] text-gray-500 uppercase font-extrabold tracking-wider">Best Mood</p>
+            <p className="text-xl font-bold text-gray-950 mt-0.5">{summary?.bestMood ?? 0}/5</p>
           </div>
           <div className="text-center border-l border-gray-200">
-            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Total Entries</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{summary?.totalEntries ?? 0}</p>
+            <p className="text-[9px] text-gray-500 uppercase font-extrabold tracking-wider">Total Entries</p>
+            <p className="text-xl font-bold text-gray-950 mt-0.5">{summary?.totalEntries ?? 0}</p>
           </div>
           <div className="text-center border-l border-gray-200">
-            <p className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Week Trend</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">
+            <p className="text-[9px] text-gray-500 uppercase font-extrabold tracking-wider">Week Trend</p>
+            <p className="text-xl font-bold text-gray-950 mt-0.5">
               {(summary?.weekOverWeekChange ?? 0) > 0 ? '+' : ''}
               {(summary?.weekOverWeekChange ?? 0).toFixed(2)}
             </p>
@@ -395,57 +397,53 @@ export default function ReportsPage() {
         </div>
 
         {/* AI Wellness Report Brief Content */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-1 flex items-center gap-2">
+        <div className="space-y-2">
+          <h2 className="text-xs font-black text-gray-950 border-b border-gray-300 pb-1 uppercase tracking-wider">
             AI Wellness Analysis Brief
           </h2>
-          <div className="space-y-2 text-sm leading-relaxed text-gray-800">
-            {brief ? renderBriefContent(brief) : <p className="text-gray-400">No wellness analysis available for this range.</p>}
+          <div className="space-y-1 text-[11px] leading-snug text-gray-950">
+            {brief ? renderBriefContent(brief, true) : <p className="text-gray-400">No wellness analysis available for this range.</p>}
           </div>
         </div>
 
-        {/* Page Break for Printable Charts */}
-        <div className="pt-8 space-y-8 break-before-page border-t border-gray-200 mt-12">
-          <h2 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-1">Visual Mood Analytics</h2>
+        {/* Page Break for Printable Charts (Page 2) */}
+        <div className="pt-6 space-y-6 break-before-page border-t border-gray-300">
+          <h2 className="text-sm font-black text-gray-950 border-b border-gray-300 pb-1 uppercase tracking-wider">Visual Mood Analytics</h2>
           
           <div className="grid grid-cols-1 gap-6">
-            <div className="border border-gray-200 rounded-lg p-4 bg-white">
-              <h3 className="text-xs font-semibold text-gray-500 mb-4 text-center">Mood Trend over Selected Period</h3>
+            <div className="border border-gray-300 rounded-lg p-4 bg-white flex flex-col items-center">
+              <h3 className="text-xs font-bold text-gray-800 mb-3 text-center uppercase tracking-wider">Mood Trend over Selected Period</h3>
               {chartData.length > 0 ? (
-                <div className="h-[220px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="date" stroke="#6b7280" fontSize={10} />
-                      <YAxis stroke="#6b7280" domain={[0, 5]} fontSize={10} />
-                      <Line
-                        type="monotone"
-                        dataKey="score"
-                        stroke="#6366f1"
-                        dot={{ fill: '#6366f1', r: 4 }}
-                        strokeWidth={2}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="w-full flex justify-center items-center py-2">
+                  <LineChart width={680} height={200} data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="date" stroke="#374151" fontSize={10} fontWeight="bold" />
+                    <YAxis stroke="#374151" domain={[0, 5]} fontSize={10} fontWeight="bold" />
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#4f46e5"
+                      dot={{ fill: '#4f46e5', r: 4 }}
+                      strokeWidth={2.5}
+                    />
+                  </LineChart>
                 </div>
               ) : (
                 <p className="text-xs text-gray-400 text-center py-12">Not enough mood data to render trend chart.</p>
               )}
             </div>
 
-            <div className="border border-gray-200 rounded-lg p-4 bg-white">
-              <h3 className="text-xs font-semibold text-gray-500 mb-4 text-center">Distribution of Mood Types</h3>
+            <div className="border border-gray-300 rounded-lg p-4 bg-white flex flex-col items-center">
+              <h3 className="text-xs font-bold text-gray-800 mb-3 text-center uppercase tracking-wider">Distribution of Mood Types</h3>
               {moodDistribution.length > 0 ? (
-                <div className="h-[200px] w-full flex justify-center items-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={moodDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={{ fontSize: 10, fill: '#374151' }}>
-                        {moodDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                <div className="w-full flex justify-center items-center py-2">
+                  <PieChart width={680} height={180}>
+                    <Pie data={moodDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+                      {moodDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
                 </div>
               ) : (
                 <p className="text-xs text-gray-400 text-center py-12">No mood distribution data available.</p>
