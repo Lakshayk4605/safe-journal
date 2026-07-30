@@ -63,7 +63,7 @@ function renderBriefContent(text: string, isPrint = false) {
         const content = parts.slice(2).join('**');
         return (
           <div key={idx} className={isPrint ? "flex items-start gap-1.5 text-[11px] leading-tight text-gray-900 pl-2 mt-1" : "flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1"}>
-            <span className={isPrint ? "text-gray-900 font-bold text-[8px] mt-0.5">•</span>
+            <span className={isPrint ? "text-gray-900 font-bold text-[8px] mt-0.5" : "text-accent mt-1.5 font-bold text-[10px]"}>&bull;</span>
             <span>
               <strong className={isPrint ? "text-gray-950 font-extrabold" : "text-foreground font-semibold"}>{title}</strong>{content}
             </span>
@@ -76,7 +76,7 @@ function renderBriefContent(text: string, isPrint = false) {
       const content = trimmed.replace(/^[\*\-]\s+/, '');
       return (
         <div key={idx} className={isPrint ? "flex items-start gap-1.5 text-[11px] leading-tight text-gray-900 pl-2 mt-1" : "flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1"}>
-          <span className={isPrint ? "text-gray-900 font-bold text-[8px] mt-0.5">•</span>
+          <span className={isPrint ? "text-gray-900 font-bold text-[8px] mt-0.5" : "text-accent mt-1.5 font-bold text-[10px]"}>&bull;</span>
           <span>{content}</span>
         </div>
       );
