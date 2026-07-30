@@ -90,10 +90,80 @@ export const authService = {
     return { user: toPublicUser(user), ...tokens };
   },
 
-  async login(input: { email: string; password: string }, ctx: RequestContext) {
-    const user = await userRepository.findByEmail(input.email);
+  async sendPhoneOtp(phoneNumber: string) {
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      throw ApiError.badRequest('Please enter a valid 10-digit phone number');
+    }
+
+    const otp = '123456';
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    let user = await userRepository.findByPhoneNumber(cleanPhone);
+    if (user) {
+      await userRepository.update(user.id, {
+        phoneOtp: otp,
+        phoneOtpExpiresAt: expiresAt,
+      });
+    } else {
+      const dummyPassword = await hashPassword(generateSecureToken());
+      user = await userRepository.create({
+        name: `User ${cleanPhone.slice(-4)}`,
+        email: `phone_${cleanPhone}@phone.safejournal.app`,
+        phoneNumber: cleanPhone,
+        passwordHash: dummyPassword,
+        phoneOtp: otp,
+        phoneOtpExpiresAt: expiresAt,
+        preferences: { create: {} },
+      });
+    }
+
+    return {
+      message: 'OTP sent successfully',
+      phoneNumber: cleanPhone,
+      otp,
+    };
+  },
+
+  async verifyPhoneOtp(phoneNumber: string, otp: string, ctx: RequestContext) {
+    const cleanPhone = phoneNumber.replace(/\D/g, '');
+    const user = await userRepository.findByPhoneNumber(cleanPhone);
+
+    if (!user) {
+      throw ApiError.notFound('Account not found for this phone number');
+    }
+
+    if (!user.phoneOtp || user.phoneOtp !== otp.trim()) {
+      throw ApiError.badRequest('Invalid OTP code');
+    }
+
+    if (user.phoneOtpExpiresAt && user.phoneOtpExpiresAt.getTime() < Date.now()) {
+      throw ApiError.badRequest('OTP code has expired. Please request a new one.');
+    }
+
+    await userRepository.update(user.id, {
+      phoneOtp: null,
+      phoneOtpExpiresAt: null,
+    });
+
+    await auditLogRepository.log({
+      userId: user.id,
+      action: AuditAction.USER_LOGIN,
+      ipAddress: ctx.ipAddress,
+      userAgent: ctx.userAgent,
+    });
+
+    const tokens = await issueTokenPair(user.id, user.email, user.role, ctx);
+    return { user: toPublicUser(user), ...tokens };
+  },
+
+  async login(input: { email?: string; identifier?: string; password: string }, ctx: RequestContext) {
+    const searchId = input.identifier || input.email;
+    if (!searchId) throw ApiError.badRequest('Email or phone number is required');
+
+    const user = await userRepository.findByIdentifier(searchId);
     if (!user || user.deletedAt) {
-      throw ApiError.unauthorized('Invalid email or password');
+      throw ApiError.unauthorized('Invalid email/phone or password');
     }
 
     const validPassword = await comparePassword(input.password, user.passwordHash);
@@ -104,7 +174,7 @@ export const authService = {
         ipAddress: ctx.ipAddress,
         userAgent: ctx.userAgent,
       });
-      throw ApiError.unauthorized('Invalid email or password');
+      throw ApiError.unauthorized('Invalid email/phone or password');
     }
 
     if (!user.isActive) {

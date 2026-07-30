@@ -31,6 +31,8 @@ router.post('/signup', authRateLimiter, validate(signupSchema), authController.s
  *     tags: [Auth]
  */
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login);
+router.post('/send-otp', authRateLimiter, authController.sendPhoneOtp);
+router.post('/verify-otp', authRateLimiter, authController.verifyPhoneOtp);
 
 router.post('/logout', requireAuth, authController.logout);
 router.post('/refresh', authController.refresh);

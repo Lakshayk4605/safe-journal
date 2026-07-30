@@ -5,8 +5,14 @@ export const authApi = {
   signup: (input: { name: string; email: string; password: string }) =>
     api.post<{ user: BackendUser }>('/auth/signup', input),
 
-  login: (input: { email: string; password: string }) =>
+  login: (input: { email?: string; identifier?: string; password: string }) =>
     api.post<{ user: BackendUser }>('/auth/login', input),
+
+  sendPhoneOtp: (phoneNumber: string) =>
+    api.post<{ message: string; phoneNumber: string; otp: string }>('/auth/send-otp', { phoneNumber }),
+
+  verifyPhoneOtp: (input: { phoneNumber: string; otp: string }) =>
+    api.post<{ user: BackendUser }>('/auth/verify-otp', input),
 
   logout: () => api.post<null>('/auth/logout'),
 
