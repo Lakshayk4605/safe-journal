@@ -6,23 +6,6 @@ export const userRepository = {
     return prisma.user.findUnique({ where: { email } });
   },
 
-  findByPhoneNumber(phoneNumber: string) {
-    return prisma.user.findUnique({ where: { phoneNumber } });
-  },
-
-  findByIdentifier(identifier: string) {
-    const clean = identifier.trim().toLowerCase();
-    return prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: clean },
-          { phoneNumber: clean },
-        ],
-        deletedAt: null,
-      },
-    });
-  },
-
   findById(id: string) {
     return prisma.user.findFirst({ where: { id, deletedAt: null }, include: { preferences: true } });
   },

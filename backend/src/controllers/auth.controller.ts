@@ -54,20 +54,6 @@ export const authController = {
     });
   }),
 
-  sendPhoneOtp: asyncHandler(async (req, res) => {
-    const result = await authService.sendPhoneOtp(req.body.phoneNumber);
-    sendSuccess(res, 200, 'OTP sent successfully to your phone number.', result);
-  }),
-
-  verifyPhoneOtp: asyncHandler(async (req, res) => {
-    const result = await authService.verifyPhoneOtp(req.body.phoneNumber, req.body.otp, context(req));
-    setAuthCookies(res, result.accessToken, result.refreshToken);
-    sendSuccess(res, 200, 'Logged in successfully via Phone OTP', {
-      user: result.user,
-      accessToken: env.NODE_ENV === 'test' ? result.accessToken : undefined,
-    });
-  }),
-
   logout: asyncHandler(async (req, res) => {
     const refreshToken = req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN];
     await authService.logout(refreshToken, req.user?.id, context(req));

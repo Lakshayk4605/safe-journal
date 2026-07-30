@@ -76,9 +76,6 @@ model User {
   id                    String    @id @default(uuid())
   name                  String
   email                 String    @unique
-  phoneNumber           String?   @unique
-  phoneOtp              String?
-  phoneOtpExpiresAt     DateTime?
   passwordHash          String
   avatarUrl             String?
   role                  Role      @default(USER)
