@@ -21,7 +21,7 @@ const envSchema = z.object({
   REDIS_URL: z.string().default('redis://localhost:6379'),
 
   RESEND_API_KEY: z.string().optional().default(''),
-  EMAIL_FROM: z.string().default('Safe Journal <no-reply@safejournal.app>'),
+  EMAIL_FROM: z.string().default('Safe Journal <onboarding@resend.dev>'),
 
   CLOUDINARY_CLOUD_NAME: z.string().optional().default(''),
   CLOUDINARY_API_KEY: z.string().optional().default(''),
