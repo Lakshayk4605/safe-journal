@@ -8,13 +8,29 @@ import { manifestationApi } from '@/lib/api/manifestation';
 import { ApiError } from '@/lib/api-client';
 import type { BackendManifestationEntry } from '@/lib/api-types';
 
+const dailyManifestationPrompts = [
+  { question: "What is your main focal intention for expanding your vision today?", placeholder: "e.g. I intend to anchor peace and envision clear success for my week..." },
+  { question: "What energy, mindset, or posture are you choosing to embody today?", placeholder: "e.g. I embody calm confidence, focus, and unwavering determination..." },
+  { question: "What specific breakthrough or opportunity are you actively attracting today?", placeholder: "e.g. I attract aligned partnerships, financial abundance, and ease..." },
+  { question: "What limiting belief or hesitation are you letting go of today?", placeholder: "e.g. I release self-doubt and trust my intuitive intelligence..." },
+  { question: "How will you take bold, aligned action toward your highest goal today?", placeholder: "e.g. I take decisive steps toward completing my primary project..." },
+  { question: "What abundance, gratitude, or blessing are you opening your heart to receive?", placeholder: "e.g. I am open to unexpected joy, financial flow, and support..." },
+  { question: "What is the ultimate vision of harmony and success you are manifesting today?", placeholder: "e.g. Deep inner peace, creative fulfillment, and radiant health..." }
+];
+
 const prewrittenAffirmations = [
   "I am calm, centered, and aligned with limitless opportunities.",
   "I attract positivity, financial abundance, and high-vibration energy.",
   "I trust my inner guidance and believe everything is unfolding perfectly.",
   "I release all fear and step boldly into my highest potential.",
   "I am grateful for my progress and celebrate every small victory.",
-  "I command my day with unwavering confidence, clarity, and peace."
+  "I command my day with unwavering confidence, clarity, and peace.",
+  "My mind is clear, my heart is open, and my energy attracts success.",
+  "I am worthy of all the goodness, joy, and prosperity coming into my life.",
+  "Every action I take brings me closer to my dream reality.",
+  "I radiate positive frequency, and the universe responds with blessings.",
+  "I am resilient, capable, and capable of creating miracles in my life.",
+  "Abundance flows to me naturally and effortlessly from multiple sources."
 ];
 
 const bubblePositions = [
@@ -32,6 +48,20 @@ export default function ManifestationPage() {
   const [intention, setIntention] = useState('');
   const [affirmation, setAffirmation] = useState('');
   const [visualized, setVisualized] = useState(false);
+  const [promptIndex, setPromptIndex] = useState(() => new Date().getDay());
+  const [affirmationIndex, setAffirmationIndex] = useState(0);
+
+  const currentPrompt = dailyManifestationPrompts[promptIndex % dailyManifestationPrompts.length];
+
+  const handleNextPrompt = () => {
+    setPromptIndex((prev) => (prev + 1) % dailyManifestationPrompts.length);
+  };
+
+  const handleCycleAffirmation = () => {
+    const nextIdx = (affirmationIndex + 1) % prewrittenAffirmations.length;
+    setAffirmationIndex(nextIdx);
+    setAffirmation(prewrittenAffirmations[nextIdx]);
+  };
 
   const [history, setHistory] = useState<BackendManifestationEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -305,11 +335,21 @@ export default function ManifestationPage() {
                     
                     {/* Intention Input */}
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-foreground">
-                        What is your primary intention or focus for today?
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-foreground">
+                          {currentPrompt.question}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleNextPrompt}
+                          className="text-xs font-bold text-purple-500 hover:text-purple-600 flex items-center gap-1 cursor-pointer hover:underline transition-colors"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Refresh Prompt
+                        </button>
+                      </div>
                       <textarea
-                        placeholder="e.g. I intend to approach all my tasks with calm clarity, creative energy, and confidence..."
+                        placeholder={currentPrompt.placeholder}
                         value={intention}
                         onChange={(e) => setIntention(e.target.value)}
                         className="w-full min-h-28 p-4 rounded-2xl border border-border/60 bg-background/60 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none text-base leading-relaxed"
@@ -319,9 +359,19 @@ export default function ManifestationPage() {
 
                     {/* Affirmation Input */}
                     <div className="space-y-3">
-                      <label className="text-sm font-bold text-foreground">
-                        Your Daily Affirmation
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-foreground">
+                          Your Daily Affirmation
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleCycleAffirmation}
+                          className="text-xs font-bold text-purple-500 hover:text-purple-600 flex items-center gap-1 cursor-pointer hover:underline transition-colors"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                          Generate Affirmation
+                        </button>
+                      </div>
                       <Input
                         type="text"
                         placeholder="Type a custom affirmation or select a template below..."

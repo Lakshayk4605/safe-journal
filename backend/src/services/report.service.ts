@@ -56,7 +56,8 @@ export const reportService = {
       .reverse()
       .map((e) => ({ date: e.date, mood: e.mood, score: e.score }));
 
-    const totalEntries = await journalEntryRepository.countForUser(userId);
+    const totalJournalEntries = await journalEntryRepository.countForUser(userId);
+    const totalEntries = totalJournalEntries + moodHistory.length;
 
     return {
       averageMood: Number(averageMood.toFixed(2)),

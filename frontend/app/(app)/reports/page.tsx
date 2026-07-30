@@ -33,6 +33,9 @@ const chartColors: Record<string, string> = {
 function renderBriefContent(text: string) {
   return text.split('\n').map((line, idx) => {
     const trimmed = line.trim();
+    if (!trimmed) {
+      return <div key={idx} className="h-1.5" />;
+    }
     if (trimmed.startsWith('### ')) {
       return (
         <h4 key={idx} className="text-base font-bold text-foreground mt-4 mb-1.5 flex items-center gap-1.5">
@@ -47,8 +50,12 @@ function renderBriefContent(text: string) {
         </h3>
       );
     }
-    if (trimmed.startsWith('- **') || trimmed.startsWith('* **')) {
-      const parts = trimmed.slice(2).split('**');
+
+    // Match bullets like: "* **Title**", "- **Title**", "*   **Title**"
+    const bulletMatch = trimmed.match(/^[\*\-]\s+(\*\*.+?\*\*[\s\S]*)$/);
+    if (bulletMatch) {
+      const rest = bulletMatch[1];
+      const parts = rest.split('**');
       if (parts.length >= 3) {
         const title = parts[1];
         const content = parts.slice(2).join('**');
@@ -56,23 +63,32 @@ function renderBriefContent(text: string) {
           <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1">
             <span className="text-accent mt-1.5 font-bold text-[10px]">•</span>
             <span>
-              <strong className="text-foreground">{title}</strong>{content}
+              <strong className="text-foreground font-semibold">{title}</strong>{content}
             </span>
           </div>
         );
       }
     }
+
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const content = trimmed.replace(/^[\*\-]\s+/, '');
       return (
         <div key={idx} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/90 pl-4 mt-1">
           <span className="text-accent mt-1.5 font-bold text-[10px]">•</span>
-          <span>{trimmed.slice(2)}</span>
+          <span>{content}</span>
         </div>
       );
     }
-    if (trimmed === '') {
-      return <div key={idx} className="h-1.5" />;
+
+    // Match bold lines like: "**1. Executive Summary**"
+    if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length > 4) {
+      return (
+        <p key={idx} className="text-sm font-bold text-foreground mt-3 mb-1">
+          {trimmed.slice(2, -2)}
+        </p>
+      );
     }
+
     return (
       <p key={idx} className="text-sm text-foreground/95 leading-relaxed whitespace-pre-wrap">
         {line}
@@ -342,7 +358,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Print-only View Layout */}
-      <div className="hidden print:block p-8 space-y-8 max-w-4xl mx-auto text-black">
+      <div className="hidden print:block p-8 space-y-8 max-w-4xl mx-auto text-black reports-print-container">
         {/* Print Header */}
         <div className="border-b-2 border-gray-300 pb-4 flex justify-between items-end">
           <div>

@@ -8,6 +8,44 @@ import { gratitudeApi } from '@/lib/api/gratitude';
 import { ApiError } from '@/lib/api-client';
 import type { BackendGratitudeEntry } from '@/lib/api-types';
 
+const dailyGratitudePromptSets = [
+  [
+    { id: 1, question: "What is one thing that brought you joy today?", placeholder: "e.g. A kind smile from a stranger, warm coffee..." },
+    { id: 2, question: "Who or what supported you recently?", placeholder: "e.g. A friend listening to me, a helpful colleague..." },
+    { id: 3, question: "What is a small victory or progress you made?", placeholder: "e.g. Finished a difficult task, kept my calm..." }
+  ],
+  [
+    { id: 1, question: "What is a fresh opportunity or new start you felt grateful for today?", placeholder: "e.g. Starting a new project with clarity..." },
+    { id: 2, question: "Who inspired or motivated you to take action today?", placeholder: "e.g. A podcast host, my mentor, a close friend..." },
+    { id: 3, question: "What is a skill or personal strength you used to overcome a challenge today?", placeholder: "e.g. My patience, problem-solving ability..." }
+  ],
+  [
+    { id: 1, question: "Who is someone in your life whose presence makes you feel safe and valued?", placeholder: "e.g. My partner, my parent, a childhood friend..." },
+    { id: 2, question: "What is a conversation or gentle gesture today that warmed your heart?", placeholder: "e.g. A warm 'thank you' text from a peer..." },
+    { id: 3, question: "What is something in your physical environment that brings you comfort?", placeholder: "e.g. My cozy bed, plants in my room..." }
+  ],
+  [
+    { id: 1, question: "What is a small win or milestone from today that you are proud of?", placeholder: "e.g. Completed my workout, organized my desk..." },
+    { id: 2, question: "What is a lesson you learned recently that helped you grow?", placeholder: "e.g. Learning to set healthy boundaries..." },
+    { id: 3, question: "What is a piece of good news or positive surprise you experienced?", placeholder: "e.g. Getting positive feedback on my work..." }
+  ],
+  [
+    { id: 1, question: "What is a simple pleasure (warm drink, good weather, a song) you enjoyed today?", placeholder: "e.g. Listening to my favorite acoustic track..." },
+    { id: 2, question: "What is a body function or physical capability you are thankful for today?", placeholder: "e.g. Having deep breath, being able to walk in nature..." },
+    { id: 3, question: "What is a happy memory from your past that brings a smile to your face?", placeholder: "e.g. That summer trip to the mountains..." }
+  ],
+  [
+    { id: 1, question: "What is a tool, app, or convenience that made your day easier today?", placeholder: "e.g. High-speed internet, my favorite journal app..." },
+    { id: 2, question: "Who is someone you appreciate deeply even if you haven't spoken in a while?", placeholder: "e.g. My high school teacher, an old roommate..." },
+    { id: 3, question: "What is an act of kindness you gave or received today?", placeholder: "e.g. Holding the door for someone, receiving a warm tea..." }
+  ],
+  [
+    { id: 1, question: "What was a peaceful or relaxing moment in your day today?", placeholder: "e.g. Sitting in silence with my morning tea..." },
+    { id: 2, question: "What is a favorite space or place where you feel completely at ease?", placeholder: "e.g. My balcony garden, the quiet library..." },
+    { id: 3, question: "What is a personal boundary or self-care choice you honored today?", placeholder: "e.g. Saying no to extra stress, going to bed early..." }
+  ]
+];
+
 export default function GratitudePage() {
   // Today's entry state
   const [todayEntry, setTodayEntry] = useState<BackendGratitudeEntry | null>(null);
@@ -18,6 +56,13 @@ export default function GratitudePage() {
   const [notes, setNotes] = useState('');
   const [writeMode, setWriteMode] = useState<'guided' | 'freeform'>('guided');
   const [freeformText, setFreeformText] = useState('');
+  const [promptSetIndex, setPromptSetIndex] = useState(() => new Date().getDay());
+
+  const currentPrompts = dailyGratitudePromptSets[promptSetIndex % dailyGratitudePromptSets.length];
+
+  const handleNextPrompts = () => {
+    setPromptSetIndex((prev) => (prev + 1) % dailyGratitudePromptSets.length);
+  };
 
   // History state
   const [history, setHistory] = useState<BackendGratitudeEntry[]>([]);
@@ -308,14 +353,26 @@ export default function GratitudePage() {
                   <div className="space-y-4">
                     {writeMode === 'guided' ? (
                       <>
+                        <div className="flex items-center justify-between pb-1">
+                          <span className="text-xs font-semibold text-muted-foreground">Daily Dynamic Questions</span>
+                          <button
+                            type="button"
+                            onClick={handleNextPrompts}
+                            className="text-xs font-bold text-amber-500 hover:text-amber-600 flex items-center gap-1 cursor-pointer hover:underline transition-colors"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Refresh Prompts
+                          </button>
+                        </div>
+
                         <div className="space-y-2">
                           <label className="text-sm font-bold text-foreground flex items-center gap-2">
                             <span className="w-5 h-5 flex items-center justify-center bg-amber-500/15 text-amber-500 rounded-full font-bold text-xs">1</span>
-                            What is one thing that brought you joy today?
+                            {currentPrompts[0].question}
                           </label>
                           <Input
                             type="text"
-                            placeholder="e.g. A kind smile from a stranger, warm coffee on a cold morning..."
+                            placeholder={currentPrompts[0].placeholder}
                             value={item1}
                             onChange={(e) => setItem1(e.target.value)}
                             className="text-base py-6 border-border/60 bg-background/60 focus:border-amber-500/50 rounded-2xl"
@@ -326,11 +383,11 @@ export default function GratitudePage() {
                         <div className="space-y-2">
                           <label className="text-sm font-bold text-foreground flex items-center gap-2">
                             <span className="w-5 h-5 flex items-center justify-center bg-amber-500/15 text-amber-500 rounded-full font-bold text-xs">2</span>
-                            What is a recent win or positive outcome?
+                            {currentPrompts[1].question}
                           </label>
                           <Input
                             type="text"
-                            placeholder="e.g. Finished a hard task at work, went for an invigorating run..."
+                            placeholder={currentPrompts[1].placeholder}
                             value={item2}
                             onChange={(e) => setItem2(e.target.value)}
                             className="text-base py-6 border-border/60 bg-background/60 focus:border-amber-500/50 rounded-2xl"
@@ -341,11 +398,11 @@ export default function GratitudePage() {
                         <div className="space-y-2">
                           <label className="text-sm font-bold text-foreground flex items-center gap-2">
                             <span className="w-5 h-5 flex items-center justify-center bg-amber-500/15 text-amber-500 rounded-full font-bold text-xs">3</span>
-                            What is something simple you are thankful to have?
+                            {currentPrompts[2].question}
                           </label>
                           <Input
                             type="text"
-                            placeholder="e.g. My comfortable bed, clean drinking water, supportive friends..."
+                            placeholder={currentPrompts[2].placeholder}
                             value={item3}
                             onChange={(e) => setItem3(e.target.value)}
                             className="text-base py-6 border-border/60 bg-background/60 focus:border-amber-500/50 rounded-2xl"
