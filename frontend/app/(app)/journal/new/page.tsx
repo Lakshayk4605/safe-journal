@@ -120,27 +120,31 @@ export default function NewEntryPage() {
         rec.lang = 'en-US';
 
         rec.onresult = (event: any) => {
-          let newFinalText = '';
-          let currentInterimText = '';
+          let finalChunk = '';
+          let interimChunk = '';
 
-          for (let i = 0; i < event.results.length; i++) {
-            const result = event.results[i];
-            if (result.isFinal) {
-              if (i > processedFinalIndexRef.current) {
-                newFinalText += result[0].transcript + ' ';
-                processedFinalIndexRef.current = i;
-              }
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalChunk += transcript + ' ';
             } else {
-              if (i > processedFinalIndexRef.current) {
-                currentInterimText += result[0].transcript;
-              }
+              interimChunk += transcript;
             }
           }
 
-          if (newFinalText) {
-            setContent((prev) => prev + newFinalText);
+          if (finalChunk.trim()) {
+            const cleanFinal = finalChunk.trim();
+            setContent((prev) => {
+              const trimmedPrev = prev.trim();
+              if (trimmedPrev.endsWith(cleanFinal)) {
+                return prev;
+              }
+              return prev ? `${prev} ${cleanFinal}` : cleanFinal;
+            });
+            setInterimText('');
+          } else {
+            setInterimText(interimChunk);
           }
-          setInterimText(currentInterimText);
         };
 
         rec.onerror = (event: any) => {
@@ -185,7 +189,6 @@ export default function NewEntryPage() {
     } else {
       try {
         setInterimText('');
-        processedFinalIndexRef.current = -1;
         recognition.start();
         setIsListening(true);
       } catch (err) {
@@ -394,12 +397,19 @@ export default function NewEntryPage() {
           <div className="relative">
             <textarea
               placeholder="Write your thoughts, feelings, and experiences here. Be as detailed as you'd like..."
-              value={content + interimText}
+              value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full min-h-96 p-4 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none animate-in fade-in"
               required
               disabled={isScanning}
             />
+            {isListening && (
+              <div className="mt-2 p-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center gap-2 text-xs font-semibold text-primary animate-in fade-in">
+                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                <span>Hearing:</span>
+                <span className="italic font-normal text-foreground truncate">{interimText || 'Speak now...'}</span>
+              </div>
+            )}
             {isScanning && (
               <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg border border-border z-20 animate-in fade-in duration-300">
                 <div className="space-y-4 text-center max-w-xs px-4">
