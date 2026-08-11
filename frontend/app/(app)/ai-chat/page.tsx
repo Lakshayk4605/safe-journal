@@ -658,9 +658,13 @@ export default function AIChatPage() {
 
   return (
     <div className="flex h-screen w-full relative overflow-hidden bg-background">
+      {/* Ambient Background Glow Orbs */}
+      <div className="absolute top-10 right-1/3 w-96 h-96 rounded-full bg-gradient-to-tr from-teal-500/15 via-emerald-500/10 to-indigo-500/10 blur-3xl pointer-events-none animate-aurora-float" />
+      <div className="absolute bottom-10 left-1/4 w-96 h-96 rounded-full bg-gradient-to-br from-indigo-500/10 via-teal-400/15 to-emerald-500/10 blur-3xl pointer-events-none animate-aurora-float-delayed" />
+
       {/* 1. Side History Sidebar (Desktop view) */}
       <aside 
-        className={`hidden md:flex border-r border-border bg-card/45 backdrop-blur-md flex-col justify-between h-full select-none transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex border-r border-border/80 bg-card/45 backdrop-blur-xl flex-col justify-between h-full select-none transition-all duration-300 ease-in-out z-20 ${
           isSidebarCollapsed ? 'w-0 p-0 border-r-0 overflow-hidden' : 'w-80 p-4'
         }`}
       >
@@ -669,7 +673,7 @@ export default function AIChatPage() {
 
       {/* Mobile Sidebar History Drawer */}
       {isMobileSidebarOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-background/60 backdrop-blur-md flex animate-in fade-in duration-300">
+        <div className="md:hidden fixed inset-0 z-50 bg-background/70 backdrop-blur-xl flex animate-in fade-in duration-300">
           <div className="absolute inset-0 z-0" onClick={() => setIsMobileSidebarOpen(false)} />
           
           <aside className="relative z-10 w-80 h-full border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col justify-between p-5 animate-in slide-in-from-left duration-300 select-none">
@@ -694,16 +698,16 @@ export default function AIChatPage() {
       )}
 
       {/* 2. Main Chat Panel */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-background">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-background relative z-10">
         {/* Chat Active Header */}
-        <header className="border-b border-border/80 px-4 md:px-6 py-4 flex items-center justify-between bg-card/25 backdrop-blur-md relative z-10 select-none">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <header className="border-b border-border/80 px-4 md:px-6 py-4 flex items-center justify-between bg-card/40 backdrop-blur-xl relative z-20 select-none shadow-sm">
+          <div className="flex items-center gap-3 min-w-0">
             {/* Mobile History Toggle Button */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="md:hidden h-8 w-8 text-muted-foreground cursor-pointer hover:bg-muted"
+              className="md:hidden h-9 w-9 text-muted-foreground cursor-pointer hover:bg-muted rounded-xl"
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -713,21 +717,36 @@ export default function AIChatPage() {
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden md:flex h-8 w-8 text-muted-foreground cursor-pointer hover:bg-muted mr-1"
+              className="hidden md:flex h-9 w-9 text-muted-foreground cursor-pointer hover:bg-muted rounded-xl mr-1"
               title={isSidebarCollapsed ? "Expand History" : "Minimize History"}
             >
               <Menu className="w-4.5 h-4.5" />
             </Button>
 
-            <MessageSquare className="w-5 h-5 text-primary flex-shrink-0" />
-            <div className="min-w-0">
-              <h2 className="text-sm font-bold text-foreground truncate">
-                {activeSession ? activeSession.title : 'New Wellness Conversation'}
-              </h2>
+            <div className="relative">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-500 via-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
+                <Brain className="w-5 h-5 animate-pulse" />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />
+            </div>
+
+            <div className="min-w-0 space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-extrabold text-foreground truncate font-serif">
+                  {activeSession ? activeSession.title : 'Wellness Companion Sanctuary'}
+                </h2>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-ping" />
+                  <span>AI Live</span>
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground font-medium hidden sm:block">
+                Mindful emotional validation & gentle daily self-reflection companion
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {activeSession && (
               <>
                 {/* Export to Journal Action Button */}
@@ -735,26 +754,27 @@ export default function AIChatPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleExportToJournal}
-                  className="h-8 gap-1.5 text-xs font-semibold hover:border-primary/30 transition-all active:scale-95 cursor-pointer shadow-sm hover:shadow-primary/5 hidden sm:flex"
+                  className="h-9 gap-1.5 text-xs font-extrabold rounded-xl border-teal-500/30 text-teal-600 dark:text-teal-400 hover:bg-teal-500/10 transition-all active:scale-95 cursor-pointer shadow-sm hidden sm:flex"
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-primary" />
-                  Save to Journal
+                  <BookOpen className="w-4 h-4 text-teal-500" />
+                  <span>Save to Journal</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={handleExportToJournal}
-                  className="h-8 w-8 sm:hidden flex cursor-pointer"
+                  className="h-9 w-9 sm:hidden flex rounded-xl cursor-pointer border-teal-500/30"
                   title="Save to Journal"
                 >
-                  <BookOpen className="w-3.5 h-3.5 text-primary" />
+                  <BookOpen className="w-4 h-4 text-teal-500" />
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => handleTogglePin(activeSession)}
-                  className={`h-8 w-8 ${activeSession.isPinned ? 'text-primary' : 'text-muted-foreground'}`}
+                  className={`h-9 w-9 rounded-xl ${activeSession.isPinned ? 'text-teal-500 bg-teal-500/10' : 'text-muted-foreground'}`}
+                  title="Pin Conversation"
                 >
                   <Pin className={`w-4 h-4 ${activeSession.isPinned ? 'fill-current' : ''}`} />
                 </Button>
@@ -762,7 +782,8 @@ export default function AIChatPage() {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleToggleFavorite(activeSession)}
-                  className={`h-8 w-8 ${activeSession.isFavorite ? 'text-amber-500' : 'text-muted-foreground'}`}
+                  className={`h-9 w-9 rounded-xl ${activeSession.isFavorite ? 'text-amber-500 bg-amber-500/10' : 'text-muted-foreground'}`}
+                  title="Favorite Conversation"
                 >
                   <Star className={`w-4 h-4 ${activeSession.isFavorite ? 'fill-current' : ''}`} />
                 </Button>
@@ -772,12 +793,13 @@ export default function AIChatPage() {
         </header>
 
         {/* Message Panel Box */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-8 space-y-6 relative">
+        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-8 space-y-6 relative z-10">
           {loadingHistory ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
-              <span className="text-sm font-semibold text-primary animate-pulse flex items-center gap-2">
-                <Sparkles className="w-5 h-5 animate-spin" /> Retrieving conversation...
-              </span>
+            <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md z-20">
+              <div className="px-6 py-4 rounded-2xl glass-card-sanctuary border border-teal-500/30 flex items-center gap-3 shadow-xl">
+                <Sparkles className="w-5 h-5 text-teal-500 animate-spin" />
+                <span className="text-sm font-extrabold text-foreground">Opening conversation sanctuary...</span>
+              </div>
             </div>
           ) : (
             <>
@@ -787,21 +809,23 @@ export default function AIChatPage() {
 
               return (
                 <div key={msg.id} className="space-y-6">
-                  <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} w-full animate-in fade-in slide-in-from-bottom-2 duration-150`}>
+                  <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} w-full animate-in fade-in slide-in-from-bottom-2 duration-200`}>
                     <div
-                      className={`max-w-2xl px-5 py-4 rounded-2xl flex flex-col gap-2 relative group transition-all ${
+                      className={`max-w-2xl px-6 py-5 rounded-3xl flex flex-col gap-2 relative group transition-all duration-300 ${
                         isUser
-                          ? 'bg-primary text-primary-foreground shadow-md rounded-tr-sm'
-                          : 'bg-card border border-border/80 text-foreground rounded-tl-sm shadow-sm'
+                          ? 'bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-600 text-white shadow-lg shadow-teal-500/15 rounded-tr-xs border border-teal-400/30'
+                          : 'glass-card-sanctuary border border-teal-500/25 text-foreground rounded-tl-xs shadow-md glow-card-amber backdrop-blur-xl'
                       }`}
                     >
                       {/* Role name */}
-                      <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase opacity-60">
-                        <span>{isUser ? 'You' : 'Wellness Coach'}</span>
+                      <div className="flex items-center justify-between text-[10px] font-extrabold tracking-wider uppercase opacity-75">
+                        <span className="flex items-center gap-1.5">
+                          {isUser ? 'You' : '🌿 Wellness Coach'}
+                        </span>
                         {!isUser && wordCount > 0 && <span>📝 {wordCount} words</span>}
                       </div>
 
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                      <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap font-medium">
                         {msg.content}
                       </p>
 
@@ -811,10 +835,11 @@ export default function AIChatPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleCopyMessage(msg)}
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted/50"
+                          title="Copy Message"
                         >
                           {copiedMessageId === msg.id ? (
-                            <Check className="w-3.5 h-3.5 text-green-500" />
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
                           ) : (
                             <Copy className="w-3.5 h-3.5" />
                           )}
@@ -824,7 +849,8 @@ export default function AIChatPage() {
                             variant="ghost"
                             size="icon"
                             onClick={handleRegenerate}
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted/50"
+                            title="Regenerate Response"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                           </Button>
@@ -835,20 +861,23 @@ export default function AIChatPage() {
 
                   {/* If it's the welcome message and we have no user messages yet, show Interactive Mood Check-in and Quick Prompts */}
                   {msg.id === 'welcome' && messages.length === 1 && !loading && (
-                    <div className="max-w-2xl mx-auto space-y-6 py-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="max-w-2xl mx-auto space-y-6 py-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       {/* Mood check-in */}
-                      <div className="bg-card border border-border/85 rounded-2xl p-5 shadow-sm space-y-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Quick Mood Check-in</p>
-                        <p className="text-sm text-foreground font-bold">How are you feeling right now?</p>
-                        <div className="flex flex-wrap gap-2 pt-1">
+                      <div className="glass-card-sanctuary border border-teal-500/30 rounded-3xl p-6 shadow-xl space-y-4 glow-card-amber">
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-4 h-4 text-teal-500 fill-teal-500/20" />
+                          <p className="text-[10px] font-extrabold uppercase tracking-widest text-teal-600 dark:text-teal-400">Quick Emotional Check-in</p>
+                        </div>
+                        <p className="text-base text-foreground font-extrabold font-serif">How are you feeling in this moment?</p>
+                        <div className="flex flex-wrap gap-2.5 pt-1">
                           {moodCheckIns.map((item) => (
                             <button
                               key={item.label}
                               onClick={() => sendPromptMessage(item.text)}
-                              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-muted/60 hover:bg-primary hover:text-primary-foreground border border-border/60 hover:border-primary rounded-xl text-xs font-semibold cursor-pointer transition-all hover:scale-105 active:scale-95"
+                              className="flex items-center gap-2 px-4 py-2.5 bg-background/80 hover:bg-gradient-to-r hover:from-teal-500 hover:to-emerald-500 hover:text-white border border-border/80 hover:border-teal-400 rounded-2xl text-xs font-extrabold cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
                               title={item.label}
                             >
-                              <span className="text-base">{item.emoji}</span>
+                              <span className="text-lg">{item.emoji}</span>
                               <span>{item.label}</span>
                             </button>
                           ))}
@@ -856,8 +885,10 @@ export default function AIChatPage() {
                       </div>
 
                       {/* Prompt suggestion cards */}
-                      <div className="space-y-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Select a reflection theme</p>
+                      <div className="space-y-4">
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-teal-500" /> Select a Guided Reflection Theme
+                        </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {promptSuggestions.map((item) => {
                             const Icon = item.icon;
@@ -865,14 +896,14 @@ export default function AIChatPage() {
                               <button
                                 key={item.label}
                                 onClick={() => sendPromptMessage(item.text)}
-                                className="flex flex-col items-start text-left p-5 rounded-2xl bg-card border border-border/85 hover:border-primary/40 hover:bg-gradient-to-br hover:from-primary/5 hover:to-secondary/5 cursor-pointer transition-all hover:scale-[1.01] active:scale-99 shadow-sm hover:shadow-md group"
+                                className="flex flex-col items-start text-left p-6 rounded-3xl glass-card-sanctuary border border-border/80 hover:border-teal-500/40 hover:bg-gradient-to-br hover:from-teal-500/10 hover:to-emerald-500/5 cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-99 shadow-md hover:shadow-xl group"
                               >
-                                <div className="p-2 bg-primary/10 rounded-xl text-primary mb-3 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                                <div className="p-3 bg-teal-500/15 border border-teal-500/30 rounded-2xl text-teal-500 mb-3 group-hover:bg-gradient-to-tr group-hover:from-teal-500 group-hover:to-emerald-500 group-hover:text-white transition-all shadow-sm">
                                   <Icon className="w-5 h-5" />
                                 </div>
-                                <h4 className="text-sm font-bold text-foreground mb-1 flex items-center gap-1">
+                                <h4 className="text-sm font-extrabold text-foreground mb-1 flex items-center gap-1.5 font-serif">
                                   {item.label}
-                                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-primary" />
+                                  <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-teal-500" />
                                 </h4>
                                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                                   {item.description}
@@ -892,45 +923,51 @@ export default function AIChatPage() {
       )}
           {loading && (
             <div className="flex justify-start w-full">
-              <div className="bg-card border border-border/80 px-5 py-4 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-3">
-                <Sparkles className="w-4 h-4 text-primary animate-spin" />
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary/40 animate-pulse duration-1000" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary/60 animate-pulse duration-1000 delay-300" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse duration-1000 delay-600" />
+              <div className="glass-card-sanctuary border border-teal-500/30 px-6 py-5 rounded-3xl rounded-tl-xs shadow-lg flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-teal-500 animate-spin" />
+                <div className="flex gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-teal-500/50 animate-bounce duration-1000" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-teal-500/80 animate-bounce duration-1000 delay-150" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-bounce duration-1000 delay-300" />
                 </div>
+                <span className="text-xs font-bold text-teal-600 dark:text-teal-400 pl-1">Coach is thinking...</span>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {error && <p className="text-sm text-destructive text-center mb-2 font-semibold">{error}</p>}
+        {error && (
+          <div className="mx-4 md:mx-8 mb-2 p-3 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold text-center flex items-center justify-center gap-2">
+            <X className="w-4 h-4" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {/* Input Form Bottom Bar */}
-        <footer className="p-4 md:p-6 border-t border-border/85 bg-card/10 select-none">
-          <form onSubmit={handleSend} className="max-w-4xl mx-auto flex flex-col gap-2">
-            <div className="relative flex items-center">
+        <footer className="p-4 md:p-6 border-t border-border/80 bg-card/30 backdrop-blur-xl select-none relative z-20">
+          <form onSubmit={handleSend} className="max-w-4xl mx-auto flex flex-col gap-2.5">
+            <div className="relative flex items-center rounded-2xl border border-border/80 bg-background/80 focus-within:border-teal-500/60 focus-within:ring-2 focus-within:ring-teal-500/20 shadow-lg transition-all duration-300 overflow-hidden">
               <Input
                 type="text"
-                placeholder="Share whatever is on your mind..."
+                placeholder="Share whatever is on your mind today..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={loading}
-                className="w-full pr-12 h-12 bg-background border-border/80 focus:ring-primary shadow-inner rounded-xl font-medium"
+                className="w-full pr-14 h-14 bg-transparent border-0 focus-visible:ring-0 text-foreground font-medium text-sm md:text-base placeholder:text-muted-foreground/70"
               />
               <Button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="absolute right-2 h-8 w-8 p-0 rounded-lg bg-primary hover:bg-primary/95 text-primary-foreground shadow-sm flex items-center justify-center cursor-pointer"
+                className="absolute right-2.5 h-9 w-9 p-0 rounded-xl bg-gradient-to-tr from-teal-500 via-emerald-500 to-teal-400 hover:from-teal-600 hover:to-emerald-600 text-white shadow-md shadow-teal-500/20 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
               >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <div className="flex justify-between text-[10px] text-muted-foreground/80 px-1 font-semibold">
-              <span>Press Enter to send message</span>
-              <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3 text-rose-500 fill-current" /> Mindful support, not therapy.
+            <div className="flex justify-between text-[11px] text-muted-foreground font-semibold px-2">
+              <span>Press Enter to send</span>
+              <span className="flex items-center gap-1.5 text-teal-600 dark:text-teal-400">
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/30 animate-pulse" /> Mindful support sanctuary
               </span>
             </div>
           </form>
