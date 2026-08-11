@@ -55,10 +55,14 @@ const MOOD_BUTTONS = [
 ];
 
 const ZEN_SOUNDSCAPES = [
+  { id: 'alpha', name: 'Alpha Waves (10Hz) 🧠', icon: '🧠' },
+  { id: 'theta', name: 'Theta Waves (6Hz) 🌀', icon: '🌀' },
   { id: 'rain', name: 'Gentle Rain 🌧️', icon: '🌧️' },
   { id: 'ocean', name: 'Ocean Waves 🌊', icon: '🌊' },
   { id: 'forest', name: 'Forest Breeze 🌲', icon: '🌲' },
-  { id: 'focus', name: 'Deep Meditation 🧘', icon: '🧘' }
+  { id: 'cosmic', name: 'Cosmic Drone 🌌', icon: '🌌' },
+  { id: 'delta', name: 'Delta Sleep (2Hz) 🌙', icon: '🌙' },
+  { id: 'focus', name: 'Solfeggio 432Hz 🧘', icon: '🧘' }
 ];
 
 export default function DashboardPage() {
@@ -133,7 +137,66 @@ export default function DashboardPage() {
       let activeInterval: any = null;
       const activeNodes: any[] = [];
 
-      if (activeSoundscape === 'rain') {
+      if (activeSoundscape === 'alpha') {
+        // Alpha Waves (10 Hz Binaural Beat for Focus & Flow State)
+        const merger = ctx.createChannelMerger(2);
+        const oscL = ctx.createOscillator();
+        const oscR = ctx.createOscillator();
+        oscL.type = 'sine';
+        oscL.frequency.setValueAtTime(200, ctx.currentTime);
+        oscR.type = 'sine';
+        oscR.frequency.setValueAtTime(210, ctx.currentTime); // 10 Hz Alpha Beat
+        oscL.connect(merger, 0, 0);
+        oscR.connect(merger, 0, 1);
+
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+        merger.connect(gainNode);
+        gainNode.connect(masterGain);
+
+        // Soft pink noise background
+        const bufferSize = ctx.sampleRate * 2;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = (Math.random() * 2 - 1) * 0.05;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.setValueAtTime(500, ctx.currentTime);
+        noise.connect(noiseFilter);
+        noiseFilter.connect(masterGain);
+
+        oscL.start();
+        oscR.start();
+        noise.start();
+        activeNodes.push(oscL, oscR, noise);
+
+      } else if (activeSoundscape === 'theta') {
+        // Theta Waves (6 Hz Binaural Beat for Deep Meditation & Intuition)
+        const merger = ctx.createChannelMerger(2);
+        const oscL = ctx.createOscillator();
+        const oscR = ctx.createOscillator();
+        oscL.type = 'sine';
+        oscL.frequency.setValueAtTime(140, ctx.currentTime);
+        oscR.type = 'sine';
+        oscR.frequency.setValueAtTime(146, ctx.currentTime); // 6 Hz Theta
+        oscL.connect(merger, 0, 0);
+        oscR.connect(merger, 0, 1);
+
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+        merger.connect(gainNode);
+        gainNode.connect(masterGain);
+
+        oscL.start();
+        oscR.start();
+        activeNodes.push(oscL, oscR);
+
+      } else if (activeSoundscape === 'rain') {
         // Gentle Rain: Filtered Pink Noise with Audible Raindrop Pass
         const bufferSize = ctx.sampleRate * 2;
         const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -245,8 +308,54 @@ export default function DashboardPage() {
           } catch {}
         }, 3500);
 
+      } else if (activeSoundscape === 'cosmic') {
+        // Cosmic Space Drone (54Hz + 108Hz + Sub Harmonic Filter Swell)
+        const freqs = [54, 108, 162];
+        freqs.forEach((freq) => {
+          const osc = ctx.createOscillator();
+          const noteGain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          noteGain.gain.setValueAtTime(0.2 / freqs.length, ctx.currentTime);
+
+          const lfo = ctx.createOscillator();
+          lfo.frequency.setValueAtTime(0.08, ctx.currentTime);
+          const lfoGain = ctx.createGain();
+          lfoGain.gain.setValueAtTime(0.04, ctx.currentTime);
+
+          lfo.connect(lfoGain);
+          lfoGain.connect(noteGain.gain);
+
+          osc.connect(noteGain);
+          noteGain.connect(masterGain);
+          osc.start();
+          lfo.start();
+          activeNodes.push(osc, lfo);
+        });
+
+      } else if (activeSoundscape === 'delta') {
+        // Delta Sleep Waves (2 Hz Binaural Beat for Deep Rest)
+        const merger = ctx.createChannelMerger(2);
+        const oscL = ctx.createOscillator();
+        const oscR = ctx.createOscillator();
+        oscL.type = 'sine';
+        oscL.frequency.setValueAtTime(100, ctx.currentTime);
+        oscR.type = 'sine';
+        oscR.frequency.setValueAtTime(102, ctx.currentTime); // 2 Hz Delta
+        oscL.connect(merger, 0, 0);
+        oscR.connect(merger, 0, 1);
+
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.35, ctx.currentTime);
+        merger.connect(gainNode);
+        gainNode.connect(masterGain);
+
+        oscL.start();
+        oscR.start();
+        activeNodes.push(oscL, oscR);
+
       } else if (activeSoundscape === 'focus') {
-        // Deep Meditation: Solfeggio 432Hz + 216Hz + 108Hz Rich Sine Resonance
+        // Solfeggio 432Hz + 216Hz + 108Hz Rich Sine Resonance
         const freqs = [108, 216, 432];
         freqs.forEach((freq) => {
           const osc = ctx.createOscillator();
