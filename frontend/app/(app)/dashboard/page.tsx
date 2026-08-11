@@ -556,7 +556,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-card/80 border border-border/80 text-xs font-bold text-foreground shadow-sm">
                 <Shield className="w-4 h-4 text-emerald-600" />
-                <span>Sigmund Freud Counselor Active</span>
+                <span>AES-256 Encrypted</span>
               </div>
             </div>
           </div>
