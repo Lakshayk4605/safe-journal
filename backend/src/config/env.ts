@@ -29,7 +29,7 @@ const envSchema = z.object({
 
   AI_PROVIDER: z.enum(['anthropic', 'openai', 'gemini', 'mock']).default('mock'),
   AI_API_KEY: z.string().optional().default(''),
-  AI_MODEL: z.string().default('gemini-3.1-flash-lite'),
+  AI_MODEL: z.string().default('gemini-1.5-flash'),
 
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
   RATE_LIMIT_MAX: z.coerce.number().default(300),

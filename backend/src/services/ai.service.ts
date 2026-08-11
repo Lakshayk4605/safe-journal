@@ -110,12 +110,36 @@ async function callOpenAI(system: string, messages: { role: string; content: str
 }
 
 async function callGemini(system: string, messages: { role: string; content: string }[]) {
-  const contents = messages.map((m) => ({
+  let modelName = env.AI_MODEL || 'gemini-1.5-flash';
+  if (modelName.includes('3.1') || modelName.includes('lite')) {
+    modelName = 'gemini-1.5-flash';
+  }
+
+  const rawContents = messages.map((m) => ({
     role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }],
+    parts: [{ text: m.content || '' }],
   }));
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.AI_MODEL}:generateContent?key=${env.AI_API_KEY}`;
+  const contents: { role: string; parts: { text: string }[] }[] = [];
+  for (const m of rawContents) {
+    const text = m.parts[0].text.trim();
+    if (!text) continue;
+    if (contents.length > 0 && contents[contents.length - 1].role === m.role) {
+      contents[contents.length - 1].parts[0].text += `\n\n${text}`;
+    } else {
+      contents.push({ role: m.role, parts: [{ text }] });
+    }
+  }
+
+  if (contents.length > 0 && contents[0].role !== 'user') {
+    contents.shift();
+  }
+
+  if (contents.length === 0) {
+    contents.push({ role: 'user', parts: [{ text: 'Hello' }] });
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${env.AI_API_KEY}`;
 
   const response = await fetch(url, {
     method: 'POST',
@@ -128,7 +152,7 @@ async function callGemini(system: string, messages: { role: string; content: str
         parts: [{ text: system }],
       },
       generationConfig: {
-        maxOutputTokens: 2048
+        maxOutputTokens: 2048,
       },
     }),
   });
@@ -154,7 +178,7 @@ async function callGemini(system: string, messages: { role: string; content: str
 
   return {
     content: text,
-    model: env.AI_MODEL,
+    model: modelName,
     promptTokens: data.usageMetadata?.promptTokenCount,
     completionTokens: data.usageMetadata?.candidatesTokenCount,
   };
