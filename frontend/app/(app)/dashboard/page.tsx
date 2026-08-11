@@ -711,8 +711,11 @@ export default function DashboardPage() {
             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className={`w-5 h-5 ${activeSoundscape ? 'animate-pulse' : ''}`} />}
           </button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h4 className="font-bold text-xs text-foreground">Zen Sanctuary Soundscapes</h4>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">
+                🎧 Use headphones for best experience
+              </span>
               {activeSoundscape && !isMuted && (
                 <span className="flex gap-0.5 items-end h-3">
                   <span className="w-0.5 h-3 bg-teal-500 animate-pulse" />
